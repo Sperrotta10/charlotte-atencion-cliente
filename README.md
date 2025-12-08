@@ -39,13 +39,13 @@ Antes de empezar, necesitas instalar tres programas fundamentales.
 4.  Escribe el siguiente comando para descargar el código:
 
 ```bash
-git clone https://github.com/alemt19/charlotte-cocina.git
+git clone https://github.com/Sperrotta10/charlotte-atencion-cliente
 ```
 
 5.  Una vez descargado, entra en la carpeta del proyecto:
 
 ```bash
-cd charlotte-cocina
+cd charlotte-atencion-cliente
 ```
 
 _(Nota: Si el nombre de la carpeta es diferente, usa `cd nombre-de-la-carpeta`)_

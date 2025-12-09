@@ -1,7 +1,13 @@
 
 export const envs = {
-    PORT: process.env.PORT,
     DATABASE_URL: process.env.DATABASE_URL,
     DIRECT_URL: process.env.DIRECT_URL,
     NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
+    CHARLOTTE_COCINA_URL: process.env.CHARLOTTE_COCINA_URL,
+    CHARLOTTE_KPI_URL: process.env.CHARLOTTE_KPI_URL,
+    CHARLOTTE_DELIVERY_PICKUP_URL: process.env.CHARLOTTE_DELIVERY_PICKUP_URL,
+    CHARLOTTE_SECURITY_URL: process.env.CHARLOTTE_SECURITY_URL,
+
 };

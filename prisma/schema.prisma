@@ -10,6 +10,7 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// Creacion de tablas de prueba
 model User {
   email String  @unique
   id    Int     @id @default(autoincrement())
@@ -24,4 +25,68 @@ model Post {
   published Boolean @default(false)
   title     String
   author    User?   @relation(fields: [authorId], references: [id])
+}
+
+// Tablas de modulo-atencion-cliente
+
+model Tables {
+  id   Int     @id @default(autoincrement())
+  tableNumber Int
+  qrUuid   String  @unique
+  capacity   Int
+  currentStatus String // AVAILABLE, OCCUPIED, OUT_OF_SERVICE
+
+  // Relación: Una mesa puede tener muchos clientes (historial de sesiones)
+  clientes     ClienteTemporales[]
+}
+
+model ClienteTemporales {
+  id    Int     @id @default(autoincrement())
+  tableId      Int
+  table        Tables     @relation(fields: [tableId], references: [id])
+  sessionToken String  @unique
+  customerName  String
+  customerDni   String
+  status        String // ACTIVE, BILL_REQUESTED, CLOSED
+  totalAmount  Float   @default(0)
+  createdAt    DateTime @default(now())
+  closedAt     DateTime?
+
+  // Un cliente puede tener varias comandas (pedidos) y solicitudes de servicio
+  comandas     Comandas[]
+  requests     ServiceRequests[]
+}
+
+model Comandas {
+  id     Int     @id @default(autoincrement())
+  clienteId     Int
+  cliente     ClienteTemporales @relation(fields: [clienteId], references: [id])
+  status         String // PENDING, COOKING, DELIVERED, CANCELLED
+  notes         String?
+  sentAt      DateTime @default(now())
+  deliveredAt  DateTime?
+
+  // Una comanda tiene muchos items (platos/bebidas)
+  items       OrderItems[]
+}
+
+model OrderItems {
+  id  Int     @id @default(autoincrement())
+  comandaId     Int
+  comanda             Comandas @relation(fields: [comandaId], references: [id])
+  productId     Int
+  quantity       Int
+  unitPrice     Float
+  specialInstructions String?
+}
+
+model ServiceRequests {
+  id     Int     @id @default(autoincrement())
+  clienteId     Int
+  cliente    ClienteTemporales @relation(fields: [clienteId], references: [id])
+  type   String // CALL_WAITER, COMPLAINT, OTHER
+  message    String?
+  status         String // PENDING, ATTENDED
+  createdAt   DateTime @default(now())
+  attendedAt    DateTime?
 }

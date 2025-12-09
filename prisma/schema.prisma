@@ -27,66 +27,114 @@ model Post {
   author    User?   @relation(fields: [authorId], references: [id])
 }
 
-// Tablas de modulo-atencion-cliente
 
-model Tables {
-  id   Int     @id @default(autoincrement())
-  tableNumber Int
-  qrUuid   String  @unique
-  capacity   Int
-  currentStatus String // AVAILABLE, OCCUPIED, OUT_OF_SERVICE
+// --------------------------------------------------------
+// TABLAS DEL MODULO-ATENCION-CLIENTE Y ENUMS
+// --------------------------------------------------------
 
-  // Relación: Una mesa puede tener muchos clientes (historial de sesiones)
-  clientes     ClienteTemporales[]
+// Enums: Definen las reglas de negocio estrictas
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  OUT_OF_SERVICE
 }
 
-model ClienteTemporales {
-  id    Int     @id @default(autoincrement())
-  tableId      Int
-  table        Tables     @relation(fields: [tableId], references: [id])
-  sessionToken String  @unique
-  customerName  String
-  customerDni   String
-  status        String // ACTIVE, BILL_REQUESTED, CLOSED
-  totalAmount  Float   @default(0)
-  createdAt    DateTime @default(now())
-  closedAt     DateTime?
-
-  // Un cliente puede tener varias comandas (pedidos) y solicitudes de servicio
-  comandas     Comandas[]
-  requests     ServiceRequests[]
+enum ClientStatus {
+  ACTIVE
+  BILL_REQUESTED
+  CLOSED
 }
 
-model Comandas {
-  id     Int     @id @default(autoincrement())
-  clienteId     Int
-  cliente     ClienteTemporales @relation(fields: [clienteId], references: [id])
-  status         String // PENDING, COOKING, DELIVERED, CANCELLED
-  notes         String?
-  sentAt      DateTime @default(now())
-  deliveredAt  DateTime?
-
-  // Una comanda tiene muchos items (platos/bebidas)
-  items       OrderItems[]
+enum OrderStatus {
+  PENDING
+  COOKING
+  DELIVERED
+  CANCELLED
 }
 
-model OrderItems {
-  id  Int     @id @default(autoincrement())
-  comandaId     Int
-  comanda             Comandas @relation(fields: [comandaId], references: [id])
-  productId     Int
-  quantity       Int
-  unitPrice     Float
-  specialInstructions String?
+enum ServiceType {
+  CALL_WAITER
+  COMPLAINT
 }
 
-model ServiceRequests {
-  id     Int     @id @default(autoincrement())
-  clienteId     Int
-  cliente    ClienteTemporales @relation(fields: [clienteId], references: [id])
-  type   String // CALL_WAITER, COMPLAINT, OTHER
+enum RequestStatus {
+  PENDING
+  ATTENDED
+}
+
+model Table {
+  id            Int         @id @default(autoincrement())  
+  tableNumber   Int         @unique @map("table_number")
+  qrUuid        String      @unique @map("qr_uuid")
+  capacity      Int
+  currentStatus TableStatus @default(AVAILABLE) @map("current_status")
+
+  // Relations
+  clientes      ClienteTemporal[]
+
+  // Table Config
+  @@map("tables") // Nombre de la tabla en la DB
+}
+
+model ClienteTemporal {
+  id           Int          @id @default(autoincrement())  
+  tableId      Int          @map("table_id")
+  table        Table        @relation(fields: [tableId], references: [id])  
+  sessionToken String       @unique @map("session_token")
+  customerName String       @map("customer_name")
+  customerDni  String       @map("customer_dni") 
+  status       ClientStatus @default(ACTIVE)
+  totalAmount  Float        @default(0) @map("total_amount")  
+  createdAt    DateTime     @default(now()) @map("created_at")
+  closedAt     DateTime?    @map("closed_at")
+
+  // Relations
+  comandas     Comanda[]
+  requests     ServiceRequest[]
+
+  // Table Config
+  @@map("cliente_temporal")
+}
+
+model Comanda {
+  id          Int         @id @default(autoincrement())  
+  clienteId   Int         @map("cliente_id")
+  cliente     ClienteTemporal @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  status      OrderStatus @default(PENDING)
+  notes       String?
+  sentAt      DateTime    @default(now()) @map("sent_at")
+  deliveredAt DateTime?   @map("delivered_at")
+
+  // Relations
+  items       OrderItem[]
+
+  // Table Config
+  @@map("comandas")
+}
+
+model OrderItem {
+  id                  Int     @id @default(autoincrement())
+  comandaId           Int     @map("comanda_id")
+  comanda             Comanda @relation(fields: [comandaId], references: [id], onDelete: Cascade)
+  productId           Int     @map("product_id")
+  quantity            Int
+  unitPrice           Float   @map("unit_price")
+  specialInstructions String? @map("special_instructions")
+
+  // Table Config
+  @@map("order_items")
+}
+
+model ServiceRequest {
+  id         Int           @id @default(autoincrement())
+  clienteId  Int           @map("cliente_id")
+  cliente    ClienteTemporal @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  type       ServiceType
   message    String?
-  status         String // PENDING, ATTENDED
-  createdAt   DateTime @default(now())
-  attendedAt    DateTime?
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  attendedAt DateTime?     @map("attended_at")
+
+  // Table Config
+  @@map("service_requests")
 }

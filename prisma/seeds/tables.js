@@ -16,7 +16,7 @@ export const seedTables = async () => {
         if (i <= 5) capacity = 2;
         else if (i >= 16) capacity = 8;
 
-        await prisma.tables.upsert({
+        await prisma.table.upsert({
             // Usamos el QR como identificador único para saber si ya existe
             where: { qrUuid: `qr-mesa-${i}` }, 
             

@@ -22,7 +22,10 @@ app.use(cors({
       return callback(new Error(msg), false);
     }
     return callback(null, true);
-  }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // Permitir cookies y credenciales
 }))
 
 // Middlewares globales
@@ -37,6 +40,11 @@ app.get('/api', (req, res) => {
 
 // Montar rutas de ejemplo
 app.use('/api/example', exampleRoutes);
+
+// Ruta de atención al cliente (route MAIN)
+app.use('/api/v1/atencion-cliente', (req, res) => {
+  res.json({ message: 'Ruta de atención al cliente' });
+});
 
 // Iniciar servidor
 const server = app.listen(envs.PORT, () =>

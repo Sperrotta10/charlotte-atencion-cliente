@@ -2,7 +2,7 @@
 
 ## 🎯 Objetivo
 
-Implementar el endpoint **POST `/api/v1/atencion-cliente/tables`** para crear nuevas mesas en el sistema de atención al cliente del restaurante, siguiendo el patrón arquitectónico MVC + Services + Schemas establecido en el proyecto.
+Implementar el endpoint **POST `/api/v1/atencion-cliente/tables`** para crear nuevas mesas en el sistema de atención al cliente del restaurante.
 
 ---
 

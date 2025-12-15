@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { envs } from './config/envs.js';
 import exampleRoutes from './routes/example/example.routes.js';
+import mainAtencionClienteRoutes from './routes/main.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
 
@@ -42,9 +43,7 @@ app.get('/api', (req, res) => {
 app.use('/api/example', exampleRoutes);
 
 // Ruta de atención al cliente (route MAIN)
-app.use('/api/v1/atencion-cliente', (req, res) => {
-  res.json({ message: 'Ruta de atención al cliente' });
-});
+app.use('/api/v1/atencion-cliente', mainAtencionClienteRoutes);
 
 // Iniciar servidor
 const server = app.listen(envs.PORT, () =>

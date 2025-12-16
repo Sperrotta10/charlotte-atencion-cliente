@@ -2,8 +2,11 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { envs } from './config/envs.js';
 import exampleRoutes from './routes/example/example.routes.js';
+import serviceRequestRoutes from './routes/submodulos/service_request.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
+// Graceful Shutdown: Cerrar conexiones al detener el servidor
+import { prisma } from './db/client.js';
 
 const app = express();
 
@@ -42,17 +45,18 @@ app.get('/api', (req, res) => {
 app.use('/api/example', exampleRoutes);
 
 // Ruta de atención al cliente (route MAIN)
-app.use('/api/v1/atencion-cliente', (req, res) => {
-  res.json({ message: 'Ruta de atención al cliente' });
-});
+//app.use('/api/v1/atencion-cliente', (req, res) => {
+ // res.json({ message: 'Ruta de atención al cliente' });
+//});
+
+// Ruta de atención al cliente (route MAIN)
+// Esto hará que la ruta final sea: /api/v1/atencion-cliente/service-requests
+app.use('/api/v1/atencion-cliente/service-requests', serviceRequestRoutes);
 
 // Iniciar servidor
 const server = app.listen(envs.PORT, () =>
   console.log(`🚀 Server ready at: http://localhost:${envs.PORT}`)
 );
-
-// Graceful Shutdown: Cerrar conexiones al detener el servidor
-import { prisma } from './db/client.js';
 
 const gracefulShutdown = async () => {
   console.log('\nCerrando servidor y desconectando base de datos...');

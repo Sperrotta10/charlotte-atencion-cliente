@@ -1,5 +1,5 @@
 import * as tablesService from '../../services/submodulos/tables.service.js';
-import { createTableSchema } from '../../schemas/submodulos/tables.schema.js';
+import { createTableSchema, getTablesQuerySchema } from '../../schemas/submodulos/tables.schema.js';
 
 // POST /tables - Crear Mesa
 export const createTable = async (req, res) => {
@@ -29,6 +29,33 @@ export const createTable = async (req, res) => {
     }
 
     console.error('Error creando mesa:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+// GET /tables - Obtener Todas las Mesas (Monitor de Sala)
+export const getTables = async (req, res) => {
+  try {
+    // 1. Validar query params con Zod
+    const validation = getTablesQuerySchema.safeParse(req.query);
+
+    if (!validation.success) {
+      return res.status(400).json({ errors: validation.error.format() });
+    }
+
+    // 2. Llamar al servicio de negocio
+    const result = await tablesService.getAllTables(validation.data);
+
+    // 3. Formatear salida según especificación del enunciado
+    const responseBody = {
+      success: true,
+      data: result.tables,
+      metadata: result.metadata,
+    };
+
+    return res.status(200).json(responseBody);
+  } catch (error) {
+    console.error('Error obteniendo mesas:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

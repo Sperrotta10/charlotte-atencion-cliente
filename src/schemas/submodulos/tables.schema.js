@@ -19,4 +19,34 @@ export const createTableSchema = z.object({
     .max(6, { message: 'La capacidad máxima de la mesa es 6 personas' }),
 });
 
+// Esquema de validación para obtener todas las mesas (query params)
+export const getTablesQuerySchema = z.preprocess(
+  (data) => {
+    // Convertir strings a números y establecer defaults
+    const processed = { ...data };
+    if (processed.page === undefined || processed.page === '') {
+      processed.page = '1';
+    }
+    if (processed.limit === undefined || processed.limit === '') {
+      processed.limit = '20';
+    }
+    return processed;
+  },
+  z.object({
+    page: z
+      .string()
+      .transform((val) => parseInt(val, 10))
+      .pipe(z.number().int().positive({ message: 'La página debe ser mayor a 0' })),
+    limit: z
+      .string()
+      .transform((val) => parseInt(val, 10))
+      .pipe(z.number().int().positive({ message: 'El límite debe ser mayor a 0' })),
+    status: z
+      .enum(['AVAILABLE', 'OCCUPIED'], {
+        errorMap: () => ({ message: 'El status debe ser AVAILABLE u OCCUPIED' }),
+      })
+      .optional(),
+  })
+);
+
 

@@ -3,6 +3,9 @@ import * as tablesController from '../../controllers/submodulos/tables.controlle
 
 const router = Router();
 
+// GET /tables - Obtener todas las mesas (Monitor de Sala)
+router.get('/', tablesController.getTables);
+
 // POST /tables - Crear nueva mesa
 router.post('/', tablesController.createTable);
 

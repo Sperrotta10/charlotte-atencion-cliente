@@ -6,6 +6,9 @@ const router = Router();
 // GET /tables - Obtener todas las mesas (Monitor de Sala)
 router.get('/', tablesController.getTables);
 
+// POST /tables/verify-qr - Verificar Código QR (Acceso Cliente)
+router.post('/verify-qr', tablesController.verifyQr);
+
 // POST /tables - Crear nueva mesa
 router.post('/', tablesController.createTable);
 

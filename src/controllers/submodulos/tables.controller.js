@@ -1,5 +1,5 @@
 import * as tablesService from '../../services/submodulos/tables.service.js';
-import { createTableSchema, getTablesQuerySchema } from '../../schemas/submodulos/tables.schema.js';
+import { createTableSchema, getTablesQuerySchema, verifyQrSchema } from '../../schemas/submodulos/tables.schema.js';
 
 // POST /tables - Crear Mesa
 export const createTable = async (req, res) => {
@@ -56,6 +56,40 @@ export const getTables = async (req, res) => {
     return res.status(200).json(responseBody);
   } catch (error) {
     console.error('Error obteniendo mesas:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+// POST /tables/verify-qr - Verificar Código QR (Acceso Cliente)
+export const verifyQr = async (req, res) => {
+  try {
+    // 1. Validar body con Zod
+    const validation = verifyQrSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({ errors: validation.error.format() });
+    }
+
+    // 2. Llamar al servicio de negocio
+    const result = await tablesService.verifyQr(validation.data);
+
+    // 3. Retornar respuesta según especificación
+    return res.status(200).json(result);
+  } catch (error) {
+    // Manejo de errores específicos
+    if (error.code === 'TABLE_NOT_FOUND') {
+      return res.status(404).json({ error: error.message });
+    }
+
+    if (error.code === 'TABLE_OUT_OF_SERVICE') {
+      return res.status(403).json({ error: error.message });
+    }
+
+    if (error.code === 'TABLE_FULL') {
+      return res.status(409).json({ error: error.message });
+    }
+
+    console.error('Error verificando QR:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

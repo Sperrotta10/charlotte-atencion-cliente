@@ -49,4 +49,14 @@ export const getTablesQuerySchema = z.preprocess(
   })
 );
 
+// Esquema de validación para verificar código QR
+export const verifyQrSchema = z.object({
+  qr_uuid: z
+    .string({
+      required_error: 'El qr_uuid es requerido',
+      invalid_type_error: 'El qr_uuid debe ser un string',
+    })
+    .min(1, { message: 'El qr_uuid no puede estar vacío' }),
+});
+
 

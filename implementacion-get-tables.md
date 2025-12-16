@@ -498,7 +498,4 @@ Cada capa tiene responsabilidades claras y separadas, facilitando el mantenimien
 
 ---
 
-**Fecha de implementación**: 2024  
-**Autor**: Implementación siguiendo especificaciones del requerimiento 1.1.2  
-**Versión**: 1.0.0
 

@@ -1,21 +1,22 @@
+import { ServiceRequestService } from '../../services/submodulos/service_request.service.js';
+import { createServiceRequestSchema } from '../../schemas/submodulos/service_request.schema.js';
 
-import { prisma } from '../../db/client.js';
-
-// POST /service-requests
+// 1. POST: Crear Solicitud
 export const createServiceRequest = async (req, res) => {
   try {
-    const { type, message } = req.body;
-    
-    // ID Hardcodeado: Simulamos que es el Cliente #1 (requisito de la tarea)
-    const clienteIdFijo = 1; 
+    // Validación con Zod
+    const result = createServiceRequestSchema.safeParse(req.body);
 
-    const newRequest = await prisma.serviceRequest.create({
-      data: {
-        clienteId: clienteIdFijo,
-        type: type,      // Ejemplo: "CALL_WAITER"
-        message: message // Ejemplo: "Traer la cuenta"
-      }
-    });
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos inválidos',
+        errors: result.error.format()
+      });
+    }
+
+    // Llamada al Service
+    const newRequest = await ServiceRequestService.create(result.data);
 
     res.status(201).json({
       success: true,
@@ -32,21 +33,42 @@ export const createServiceRequest = async (req, res) => {
   }
 };
 
+// 2. GET: Obtener todas
+export const getServiceRequests = async (req, res) => {
+  try {
+    const requests = await ServiceRequestService.findAll();
+    res.json({ success: true, data: requests });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
 
-// PATCH /service-requests/:id
+// 3. GET: Obtener por ID
+export const getServiceRequestById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await ServiceRequestService.findById(id);
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: 'Solicitud no encontrada'
+      });
+    }
+
+    res.json({ success: true, data: request });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 4. PATCH: Atender Solicitud
 export const attendServiceRequest = async (req, res) => {
   try {
-    const { id } = req.params; // Obtenemos el ID de la URL
-
-    const updatedRequest = await prisma.serviceRequest.update({
-      where: { 
-        id: Number(id) // IMPORTANTE: Convertir el string de la URL a número
-      },
-      data: {
-        status: 'ATTENDED',      // Cambiamos el estado
-        attendedAt: new Date()   // Guardamos la fecha y hora de atención
-      }
-    });
+    const { id } = req.params;
+    
+    // Llamada al Service para actualizar
+    const updatedRequest = await ServiceRequestService.markAsAttended(id);
 
     res.json({
       success: true,
@@ -56,46 +78,13 @@ export const attendServiceRequest = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    
-    // Si el ID no existe, Prisma suele lanzar un error específico, 
-    // pero por ahora manejaremos un error general 500 o 404 según corresponda.
-    res.status(500).json({
-      success: false,
-      message: 'Error al actualizar la solicitud (verifica si el ID existe)',
-      error: error.message
-    });
-  }
-};
-
-//GET 
-export const getServiceRequestById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const request = await prisma.serviceRequest.findUnique({
-      where: {
-        id: Number(id)
-      }
-    });
-
-    // Validamos si no se encontró nada
-    if (!request) {
-      return res.status(404).json({
-        success: false,
-        message: 'Solicitud no encontrada'
-      });
+    // Prisma lanza un error específico si el registro no existe
+    if (error.code === 'P2025') {
+        return res.status(404).json({ success: false, message: 'Solicitud no encontrada para actualizar' });
     }
-
-    res.json({
-      success: true,
-      data: request
-    });
-
-  } catch (error) {
-    console.error(error);
     res.status(500).json({
       success: false,
-      message: 'Error al obtener la solicitud',
+      message: 'Error al actualizar la solicitud',
       error: error.message
     });
   }

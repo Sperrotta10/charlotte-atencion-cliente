@@ -1,0 +1,17 @@
+import { z } from 'zod';
+
+export const createServiceRequestSchema = z.object({
+  type: z.any() // 1. Dejamos entrar cualquier dato (undefined, numeros, etc)
+    .refine((val) => typeof val === 'string' && val.trim().length > 0, {
+      // 2. Si NO es texto o está vacío, lanzamos ESTE mensaje:
+      message: "El tipo de solicitud es requerido (ej: CALL_WAITER)"
+    }),
+
+  message: z.any()
+    .refine((val) => typeof val === 'string' && val.trim().length > 0, {
+      message: "El mensaje es requerido y debe ser texto"
+    })
+    .refine((val) => typeof val === 'string' && val.length >= 3, {
+      message: "El mensaje es muy corto (mínimo 3 letras)" 
+    })
+});

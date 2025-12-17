@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { envs } from './config/envs.js';
 import exampleRoutes from './routes/example/example.routes.js';
-import serviceRequestRoutes from './routes/submodulos/service_request.route.js';
+import mainRoutes from './routes/main.route.js'; 
 import morgan from 'morgan';
 import cors from 'cors';
 // Graceful Shutdown: Cerrar conexiones al detener el servidor
@@ -50,8 +50,9 @@ app.use('/api/example', exampleRoutes);
 //});
 
 // Ruta de atención al cliente (route MAIN)
-// Esto hará que la ruta final sea: /api/v1/atencion-cliente/service-requests
-app.use('/api/v1/atencion-cliente/service-requests', serviceRequestRoutes);
+app.use('/api/v1/atencion-cliente', mainRoutes);
+
+// CAMBIO app.use('/api/v1/atencion-cliente/service-requests', serviceRequestRoutes);
 
 // Iniciar servidor
 const server = app.listen(envs.PORT, () =>

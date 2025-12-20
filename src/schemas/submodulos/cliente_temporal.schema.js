@@ -25,3 +25,21 @@ export const createSessionSchema = z.object({
     .max(20, { message: 'El customer_dni no puede exceder 20 caracteres' }),
 });
 
+// Esquema de validación para el parámetro ID en la ruta
+export const clientIdParamSchema = z.object({
+  id: z
+    .string({
+      required_error: 'El id es requerido',
+      invalid_type_error: 'El id debe ser un string',
+    })
+    .min(1, { message: 'El id no puede estar vacío' })
+    .transform((val) => {
+      const parsed = parseInt(val, 10);
+      if (isNaN(parsed)) {
+        throw new Error('El id debe ser un número válido');
+      }
+      return parsed;
+    })
+    .pipe(z.number().int().positive({ message: 'El id debe ser un número entero positivo' })),
+});
+

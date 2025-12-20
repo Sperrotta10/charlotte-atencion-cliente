@@ -99,3 +99,45 @@ export const createSession = async ({ table_id, customer_name, customer_dni }) =
   };
 };
 
+/**
+ * Obtiene un cliente temporal por su ID
+ * @param {number} id - ID del cliente temporal
+ * @returns {Promise<Object>} Objeto con los datos del cliente
+ */
+export const getClientById = async (id) => {
+  // 1. Buscar el cliente por ID
+  const cliente = await prisma.clienteTemporal.findUnique({
+    where: { id },
+    include: {
+      table: {
+        select: {
+          id: true,
+          tableNumber: true,
+          capacity: true,
+          currentStatus: true,
+        },
+      },
+    },
+  });
+
+  // 2. Si no existe, lanzar error
+  if (!cliente) {
+    const error = new Error('Cliente no encontrado');
+    error.code = 'CLIENT_NOT_FOUND';
+    throw error;
+  }
+
+  // 3. Retornar respuesta formateada
+  return {
+    id: cliente.id,
+    name: cliente.customerName,
+    dni: cliente.customerDni,
+    status: cliente.status,
+    table_id: cliente.tableId,
+    table_number: cliente.table.tableNumber,
+    total_amount: cliente.totalAmount,
+    created_at: cliente.createdAt,
+    closed_at: cliente.closedAt,
+  };
+};
+

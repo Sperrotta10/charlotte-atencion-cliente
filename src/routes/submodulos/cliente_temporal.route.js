@@ -6,5 +6,8 @@ const router = Router();
 // POST /clients - Crear Sesión (Login)
 router.post('/', clienteTemporalController.createSession);
 
+// GET /clients/:id - Obtener Cliente por id
+router.get('/:id', clienteTemporalController.getClientById);
+
 export default router;
 

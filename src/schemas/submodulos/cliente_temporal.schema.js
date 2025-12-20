@@ -43,3 +43,12 @@ export const clientIdParamSchema = z.object({
     .pipe(z.number().int().positive({ message: 'El id debe ser un número entero positivo' })),
 });
 
+// Esquema de validación para actualizar estado del cliente
+export const updateStatusSchema = z.object({
+  status: z.enum(['BILL_REQUESTED', 'CLOSED'], {
+    required_error: 'El status es requerido',
+    invalid_type_error: 'El status debe ser BILL_REQUESTED o CLOSED',
+    errorMap: () => ({ message: 'El status debe ser BILL_REQUESTED o CLOSED' }),
+  }),
+});
+

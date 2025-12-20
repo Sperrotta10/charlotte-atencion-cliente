@@ -141,3 +141,112 @@ export const getClientById = async (id) => {
   };
 };
 
+/**
+ * Emite una alerta al panel de meseros
+ * TODO: Implementar sistema de notificaciones (WebSockets, eventos, etc.)
+ * @param {number} tableNumber - Número de la mesa
+ */
+const emitBillRequestedAlert = (tableNumber) => {
+  // Por ahora solo logueamos, pero aquí se puede integrar WebSockets, eventos, etc.
+  console.log(`🚨 ALERTA: Mesa ${tableNumber} pide cuenta`);
+  // Ejemplo de integración futura:
+  // io.emit('bill_requested', { table_number: tableNumber });
+};
+
+/**
+ * Actualiza el estado de un cliente temporal
+ * @param {number} id - ID del cliente temporal
+ * @param {string} status - Nuevo estado: 'BILL_REQUESTED' o 'CLOSED'
+ * @returns {Promise<Object>} Objeto con los datos actualizados del cliente
+ */
+export const updateClientStatus = async (id, status) => {
+  // 1. Verificar que el cliente existe y obtener información de la mesa
+  const cliente = await prisma.clienteTemporal.findUnique({
+    where: { id },
+    include: {
+      table: {
+        select: {
+          id: true,
+          tableNumber: true,
+        },
+      },
+    },
+  });
+
+  if (!cliente) {
+    const error = new Error('Cliente no encontrado');
+    error.code = 'CLIENT_NOT_FOUND';
+    throw error;
+  }
+
+  // 2. Preparar datos de actualización
+  const updateData = { status };
+
+  // 3. Si el estado es CLOSED, establecer closedAt
+  if (status === 'CLOSED') {
+    updateData.closedAt = new Date();
+  }
+
+  // 4. Ejecutar actualización y lógica de auto-liberación en una transacción
+  let mesaLiberada = false;
+  const result = await prisma.$transaction(async (tx) => {
+    // Actualizar el cliente
+    const updatedCliente = await tx.clienteTemporal.update({
+      where: { id },
+      data: updateData,
+    });
+
+    // Si el estado es CLOSED, verificar si hay que liberar la mesa
+    if (status === 'CLOSED') {
+      // Contar cuántos clientes quedan en esa misma table_id con estado ACTIVE o BILL_REQUESTED
+      const remainingClients = await tx.clienteTemporal.count({
+        where: {
+          tableId: cliente.tableId,
+          status: {
+            in: ['ACTIVE', 'BILL_REQUESTED'],
+          },
+        },
+      });
+
+      // Si el conteo es 0 (es el último cliente), actualizar automáticamente la tabla a AVAILABLE
+      if (remainingClients === 0) {
+        await tx.table.update({
+          where: { id: cliente.tableId },
+          data: { currentStatus: 'AVAILABLE' },
+        });
+        mesaLiberada = true;
+      }
+    }
+
+    return updatedCliente;
+  });
+
+  // 5. Si el estado es BILL_REQUESTED, emitir alerta al panel de meseros
+  if (status === 'BILL_REQUESTED') {
+    emitBillRequestedAlert(cliente.table.tableNumber);
+  }
+
+  // 6. Determinar mensaje de respuesta
+  let message = '';
+  if (status === 'BILL_REQUESTED') {
+    message = `Mesa ${cliente.table.tableNumber} pide cuenta.`;
+  } else if (status === 'CLOSED') {
+    if (mesaLiberada) {
+      message = 'Cliente cerrado exitosamente. Mesa liberada.';
+    } else {
+      message = 'Cliente cerrado exitosamente.';
+    }
+  }
+
+  // 7. Retornar respuesta formateada
+  return {
+    success: true,
+    message,
+    data: {
+      id: result.id,
+      status: result.status,
+      closed_at: result.closedAt,
+    },
+  };
+};
+

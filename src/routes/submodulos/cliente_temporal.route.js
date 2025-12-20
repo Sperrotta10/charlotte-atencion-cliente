@@ -9,5 +9,8 @@ router.post('/', clienteTemporalController.createSession);
 // GET /clients/:id - Obtener Cliente por id
 router.get('/:id', clienteTemporalController.getClientById);
 
+// PATCH /clients/:id - Actualizar Cliente (Checkout/Status)
+router.patch('/:id', clienteTemporalController.updateClientStatus);
+
 export default router;
 

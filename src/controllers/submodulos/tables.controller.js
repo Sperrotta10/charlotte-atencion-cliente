@@ -1,5 +1,5 @@
 import * as tablesService from '../../services/submodulos/tables.service.js';
-import { createTableSchema, getTablesQuerySchema, verifyQrSchema } from '../../schemas/submodulos/tables.schema.js';
+import { createTableSchema, getTablesQuerySchema, verifyQrSchema, updateTableStatusSchema, tableIdParamSchema } from '../../schemas/submodulos/tables.schema.js';
 
 // POST /tables - Crear Mesa
 export const createTable = async (req, res) => {
@@ -90,6 +90,54 @@ export const verifyQr = async (req, res) => {
     }
 
     console.error('Error verificando QR:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+// PATCH /tables/:id - Actualizar Estado Mesa
+export const updateTableStatus = async (req, res) => {
+  try {
+    // 1. Validar parámetro ID de la ruta
+    const idValidation = tableIdParamSchema.safeParse(req.params);
+
+    if (!idValidation.success) {
+      return res.status(400).json({ errors: idValidation.error.format() });
+    }
+
+    // 2. Validar body con Zod
+    const bodyValidation = updateTableStatusSchema.safeParse(req.body);
+
+    if (!bodyValidation.success) {
+      return res.status(400).json({ errors: bodyValidation.error.format() });
+    }
+
+    // 3. Llamar al servicio de negocio
+    const updated = await tablesService.updateTableStatus({
+      id: idValidation.data.id,
+      currentStatus: bodyValidation.data.currentStatus,
+    });
+
+    // 4. Formatear salida según especificación
+    const responseBody = {
+      id: updated.id,
+      table_number: updated.tableNumber,
+      qr_uuid: updated.qrUuid,
+      capacity: updated.capacity,
+      current_status: updated.currentStatus,
+    };
+
+    return res.status(200).json(responseBody);
+  } catch (error) {
+    // Manejo de errores específicos
+    if (error.code === 'TABLE_NOT_FOUND') {
+      return res.status(404).json({ error: error.message });
+    }
+
+    if (error.code === 'ACTIVE_SESSIONS_PENDING') {
+      return res.status(409).json({ error: error.message });
+    }
+
+    console.error('Error actualizando estado de mesa:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

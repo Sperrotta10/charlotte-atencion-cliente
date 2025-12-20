@@ -149,4 +149,49 @@ export const verifyQr = async ({ qr_uuid }) => {
   }
 };
 
+// Lógica de negocio para actualizar estado de mesa
+export const updateTableStatus = async ({ id, currentStatus }) => {
+  // 1. Verificar que la mesa existe
+  const table = await prisma.table.findUnique({
+    where: { id },
+    include: {
+      clientes: {
+        where: {
+          status: 'ACTIVE', // Solo sesiones activas
+        },
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!table) {
+    const error = new Error('Mesa no encontrada');
+    error.code = 'TABLE_NOT_FOUND';
+    throw error;
+  }
+
+  // 2. Si pasa a AVAILABLE, validar cierre de sesiones pendientes
+  if (currentStatus === 'AVAILABLE') {
+    const sesionesActivas = table.clientes.length;
+
+    if (sesionesActivas > 0) {
+      const error = new Error('No se puede cambiar el estado a AVAILABLE. Existen sesiones activas pendientes de cierre');
+      error.code = 'ACTIVE_SESSIONS_PENDING';
+      throw error;
+    }
+  }
+
+  // 3. Actualizar el estado de la mesa
+  const updatedTable = await prisma.table.update({
+    where: { id },
+    data: {
+      currentStatus,
+    },
+  });
+
+  return updatedTable;
+};
+
 

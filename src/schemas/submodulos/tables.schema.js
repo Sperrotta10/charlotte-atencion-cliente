@@ -59,4 +59,31 @@ export const verifyQrSchema = z.object({
     .min(1, { message: 'El qr_uuid no puede estar vacío' }),
 });
 
+// Esquema de validación para actualizar estado de mesa
+export const updateTableStatusSchema = z.object({
+  currentStatus: z.enum(['AVAILABLE', 'OUT_OF_SERVICE'], {
+    required_error: 'El currentStatus es requerido',
+    invalid_type_error: 'El currentStatus debe ser AVAILABLE u OUT_OF_SERVICE',
+    errorMap: () => ({ message: 'El currentStatus debe ser AVAILABLE u OUT_OF_SERVICE' }),
+  }),
+});
+
+// Esquema de validación para el parámetro ID en la ruta
+export const tableIdParamSchema = z.object({
+  id: z
+    .string({
+      required_error: 'El id es requerido',
+      invalid_type_error: 'El id debe ser un string',
+    })
+    .min(1, { message: 'El id no puede estar vacío' })
+    .transform((val) => {
+      const parsed = parseInt(val, 10);
+      if (isNaN(parsed)) {
+        throw new Error('El id debe ser un número válido');
+      }
+      return parsed;
+    })
+    .pipe(z.number().int().positive({ message: 'El id debe ser un número entero positivo' })),
+});
+
 

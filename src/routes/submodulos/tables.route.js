@@ -12,6 +12,9 @@ router.post('/verify-qr', tablesController.verifyQr);
 // POST /tables - Crear nueva mesa
 router.post('/', tablesController.createTable);
 
+// PATCH /tables/:id - Actualizar Estado Mesa
+router.patch('/:id', tablesController.updateTableStatus);
+
 export default router;
 
 

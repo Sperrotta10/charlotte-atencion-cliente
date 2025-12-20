@@ -231,4 +231,56 @@ export const updateTableStatus = async ({ id, currentStatus }) => {
   return updatedTable;
 };
 
+// Lógica de negocio para eliminar una mesa
+export const deleteTable = async ({ id }) => {
+  // 1. Buscar la mesa por ID con sesiones activas
+  const table = await prisma.table.findUnique({
+    where: { id },
+    include: {
+      clientes: {
+        where: {
+          status: 'ACTIVE', // Solo sesiones activas
+        },
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  // 2. Si no existe: Error 404
+  if (!table) {
+    const error = new Error('Mesa no encontrada');
+    error.code = 'TABLE_NOT_FOUND';
+    throw error;
+  }
+
+  // 3. Validación de Integridad (Bloqueo): Verificar current_status
+  if (table.currentStatus === 'OCCUPIED') {
+    const error = new Error('No se puede eliminar una mesa ocupada. Libérela primero.');
+    error.code = 'TABLE_OCCUPIED';
+    throw error;
+  }
+
+  // 4. Doble check de seguridad: Verificar active_sessions > 0
+  const activeSessions = table.clientes.length;
+  if (activeSessions > 0) {
+    const error = new Error('No se puede eliminar una mesa con sesiones activas. Cierre las sesiones primero.');
+    error.code = 'ACTIVE_SESSIONS_EXIST';
+    throw error;
+  }
+
+  // 5. Ejecutar eliminación (Hard Delete)
+  // Si está AVAILABLE o OUT_OF_SERVICE → Eliminar
+  await prisma.table.delete({
+    where: { id },
+  });
+
+  // 6. Retornar información de la mesa eliminada para el mensaje
+  return {
+    id: table.id,
+    tableNumber: table.tableNumber,
+  };
+};
+
 

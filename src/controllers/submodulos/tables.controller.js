@@ -168,4 +168,39 @@ export const updateTableStatus = async (req, res) => {
   }
 };
 
+// DELETE /tables/:id - Eliminar Mesa
+export const deleteTable = async (req, res) => {
+  try {
+    // 1. Validar parámetro ID de la ruta
+    const idValidation = tableIdParamSchema.safeParse(req.params);
+
+    if (!idValidation.success) {
+      return res.status(400).json({ errors: idValidation.error.format() });
+    }
+
+    // 2. Llamar al servicio de negocio
+    const deleted = await tablesService.deleteTable({ id: idValidation.data.id });
+
+    // 3. Formatear salida según especificación
+    const responseBody = {
+      success: true,
+      message: `Mesa ${deleted.tableNumber} eliminada correctamente del inventario.`,
+    };
+
+    return res.status(200).json(responseBody);
+  } catch (error) {
+    // Manejo de errores específicos
+    if (error.code === 'TABLE_NOT_FOUND') {
+      return res.status(404).json({ error: error.message });
+    }
+
+    if (error.code === 'TABLE_OCCUPIED' || error.code === 'ACTIVE_SESSIONS_EXIST') {
+      return res.status(409).json({ error: error.message });
+    }
+
+    console.error('Error eliminando mesa:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
 

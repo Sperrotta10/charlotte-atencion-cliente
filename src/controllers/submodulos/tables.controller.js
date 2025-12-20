@@ -60,6 +60,32 @@ export const getTables = async (req, res) => {
   }
 };
 
+// GET /tables/:id - Obtener Mesa por ID
+export const getTableById = async (req, res) => {
+  try {
+    // 1. Validar parámetro ID de la ruta
+    const idValidation = tableIdParamSchema.safeParse(req.params);
+
+    if (!idValidation.success) {
+      return res.status(400).json({ errors: idValidation.error.format() });
+    }
+
+    // 2. Llamar al servicio de negocio
+    const table = await tablesService.getTableById({ id: idValidation.data.id });
+
+    // 3. Formatear salida según especificación
+    return res.status(200).json(table);
+  } catch (error) {
+    // Manejo de errores específicos
+    if (error.code === 'TABLE_NOT_FOUND') {
+      return res.status(404).json({ error: error.message });
+    }
+
+    console.error('Error obteniendo mesa por ID:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
 // POST /tables/verify-qr - Verificar Código QR (Acceso Cliente)
 export const verifyQr = async (req, res) => {
   try {

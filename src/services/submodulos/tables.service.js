@@ -88,6 +88,43 @@ export const getAllTables = async ({ page, limit, status }) => {
   };
 };
 
+// Lógica de negocio para obtener una mesa por ID
+export const getTableById = async ({ id }) => {
+  // 1. Buscar mesa por ID
+  const table = await prisma.table.findUnique({
+    where: { id },
+    include: {
+      clientes: {
+        where: {
+          status: 'ACTIVE', // Solo contar sesiones activas
+        },
+        select: {
+          id: true, // Solo necesitamos el id para contar
+        },
+      },
+    },
+  });
+
+  // 2. Si no existe: Error 404
+  if (!table) {
+    const error = new Error('Mesa no encontrada');
+    error.code = 'TABLE_NOT_FOUND';
+    throw error;
+  }
+
+  // 3. Formatear la mesa con active_sessions calculado
+  const formattedTable = {
+    id: table.id,
+    table_number: table.tableNumber,
+    qr_uuid: table.qrUuid,
+    capacity: table.capacity,
+    current_status: table.currentStatus,
+    active_sessions: table.clientes.length, // Campo calculado
+  };
+
+  return formattedTable;
+};
+
 // Lógica de negocio para verificar código QR
 export const verifyQr = async ({ qr_uuid }) => {
   // 1. Buscar mesa por qr_uuid

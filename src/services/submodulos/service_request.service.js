@@ -25,11 +25,11 @@ export const ServiceRequestService = {
   },
 
   // 4. ATENDER SOLICITUD (Nueva - Lógica de PATCH)
-  markAsAttended: async (id) => {
+  markAsAttended: async (id, data) => {
     return await prisma.serviceRequest.update({
       where: { id: Number(id) },
       data: {
-        status: 'ATTENDED',
+        status: data.status,
         attendedAt: new Date()
       }
     });

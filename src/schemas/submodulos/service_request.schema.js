@@ -15,3 +15,9 @@ export const createServiceRequestSchema = z.object({
       message: "El mensaje es muy corto (mínimo 3 letras)" 
     })
 });
+
+export const attendServiceRequestSchema = z.object({
+  status: z.enum(['ATTENDED'], {
+    errorMap: () => ({ message: "El estado debe ser 'ATTENDED'" })
+  })
+});

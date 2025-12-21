@@ -1,5 +1,6 @@
 import { ServiceRequestService } from '../../services/submodulos/service_request.service.js';
 import { createServiceRequestSchema } from '../../schemas/submodulos/service_request.schema.js';
+import { attendServiceRequestSchema } from '../../schemas/submodulos/service_request.schema.js';
 
 // 1. POST: Crear Solicitud
 export const createServiceRequest = async (req, res) => {
@@ -66,9 +67,19 @@ export const getServiceRequestById = async (req, res) => {
 export const attendServiceRequest = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // validar el body con Zod
+    const result = attendServiceRequestSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos inválidos para atender la solicitud',
+        errors: result.error.format()
+      });
+    }
     
     // Llamada al Service para actualizar
-    const updatedRequest = await ServiceRequestService.markAsAttended(id);
+    const updatedRequest = await ServiceRequestService.markAsAttended(id, result.data);
 
     res.json({
       success: true,

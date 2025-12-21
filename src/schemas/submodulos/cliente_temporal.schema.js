@@ -21,8 +21,8 @@ export const createSessionSchema = z.object({
       required_error: 'El customer_dni es requerido',
       invalid_type_error: 'El customer_dni debe ser un string',
     })
-    .min(1, { message: 'El customer_dni no puede estar vacío' })
-    .max(20, { message: 'El customer_dni no puede exceder 20 caracteres' }),
+    .min(6, { message: 'El customer_dni no puede estar vacío' })
+    .max(8, { message: 'El customer_dni no puede exceder 8 caracteres' }),
 });
 
 // Esquema de validación para el parámetro ID en la ruta
@@ -46,9 +46,9 @@ export const clientIdParamSchema = z.object({
 // Esquema de validación para actualizar estado del cliente
 export const updateStatusSchema = z.object({
   status: z.enum(['BILL_REQUESTED', 'CLOSED'], {
-    required_error: 'El status es requerido',
     invalid_type_error: 'El status debe ser BILL_REQUESTED o CLOSED',
     errorMap: () => ({ message: 'El status debe ser BILL_REQUESTED o CLOSED' }),
-  }),
+  }).optional(),
+  // Nuevo campo opcional: total_amount
+  total_amount: z.number().min(0, "El monto no puede ser negativo").optional(),
 });
-

@@ -4,6 +4,7 @@ export const envs = {
     DIRECT_URL: process.env.DIRECT_URL,
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
+    JWT_SECRET: process.env.JWT_SECRET,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
     CHARLOTTE_COCINA_URL: process.env.CHARLOTTE_COCINA_URL,
     CHARLOTTE_KPI_URL: process.env.CHARLOTTE_KPI_URL,

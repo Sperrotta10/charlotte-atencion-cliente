@@ -1,33 +1,66 @@
 import { prisma } from '../../db/client.js';
 import { envs } from '../../config/envs.js';
+import jwt from 'jsonwebtoken';
 
 /**
- * Solicita un token JWT al módulo de seguridad
- * @param {Object} payload - Datos para incluir en el token
- * @returns {Promise<string>} Token JWT
+ * Solicita o Genera un token JWT.
+ * LÓGICA HÍBRIDA:
+ * - Desarrollo: Genera un JWT real firmado localmente (sin depender del servicio externo).
+ * - Producción: Realiza la petición HTTP al módulo de seguridad para una firma centralizada.
+ * * @param {Object} payload - Datos para incluir en el token
+ * @returns {Promise<string>} Token JWT válido
  */
 const requestJwtToken = async (payload) => {
+  // 1. MODO DESARROLLO (Generación Local Real)
+  if (envs.NODE_ENV === 'development') {
+    console.log('🚧 [DEV MODE] Generando JWT localmente (Bypass de Seguridad)...');
+    
+    // Usamos una clave secreta de desarrollo.
+    // NOTA: Asegúrate de que tu middleware de auth use esta misma clave en modo dev.
+    const secret = envs.JWT_SECRET || 'charlotte-dev-secret-key-123';
+    
+    // Firmamos el token realmente. Esto crea un string "eyJ..." válido y decodificable.
+    const token = jwt.sign(payload, secret, {
+        expiresIn: '4h', // Duración típica de una cena
+        algorithm: 'HS256'
+    });
+
+    return token;
+  }
+
+  // 2. MODO PRODUCCIÓN (Petición al Microservicio)
   const securityUrl = envs.CHARLOTTE_SECURITY_URL;
   
   if (!securityUrl) {
-    throw new Error('CHARLOTTE_SECURITY_URL no está configurada');
+    throw new Error('CHARLOTTE_SECURITY_URL no está configurada en variables de entorno');
   }
 
-  const response = await fetch(`${securityUrl}/api/v1/security/token/sign`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const response = await fetch(`${securityUrl}/api/seguridad/auth/clientSession`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // 'x-service-key': envs.SERVICE_KEY // Si se requiere en el futuro
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error al solicitar token JWT: ${response.status} - ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Error S2S Seguridad: ${response.status} - ${errorText}`);
+      throw new Error('El servicio de seguridad rechazó la solicitud de token');
+    }
+
+    const data = await response.json();
+    
+    // Soporte para diferentes estructuras de respuesta del módulo de seguridad
+    return data.token || data.session_token || data.access_token;
+
+  } catch (error) {
+    console.error('Error crítico comunicando con Módulo de Seguridad:', error);
+    // En producción no podemos "inventar" un token, debemos fallar si seguridad no responde.
+    throw new Error('Servicio de autenticación no disponible temporalmente');
   }
-
-  const data = await response.json();
-  return data.token || data.session_token || data.access_token;
 };
 
 /**
@@ -58,8 +91,7 @@ export const createSession = async ({ table_id, customer_name, customer_dni }) =
   const jwtPayload = {
     table_id,
     customer_name,
-    customer_dni,
-    module: 'atencion-cliente',
+    customer_dni
   };
 
   const sessionToken = await requestJwtToken(jwtPayload);
@@ -141,17 +173,6 @@ export const getClientById = async (id) => {
   };
 };
 
-/**
- * Emite una alerta al panel de meseros
- * TODO: Implementar sistema de notificaciones (WebSockets, eventos, etc.)
- * @param {number} tableNumber - Número de la mesa
- */
-const emitBillRequestedAlert = (tableNumber) => {
-  // Por ahora solo logueamos, pero aquí se puede integrar WebSockets, eventos, etc.
-  console.log(`🚨 ALERTA: Mesa ${tableNumber} pide cuenta`);
-  // Ejemplo de integración futura:
-  // io.emit('bill_requested', { table_number: tableNumber });
-};
 
 /**
  * Actualiza el estado de un cliente temporal
@@ -159,7 +180,7 @@ const emitBillRequestedAlert = (tableNumber) => {
  * @param {string} status - Nuevo estado: 'BILL_REQUESTED' o 'CLOSED'
  * @returns {Promise<Object>} Objeto con los datos actualizados del cliente
  */
-export const updateClientStatus = async (id, status) => {
+export const updateClientStatus = async (id, data) => {
   // 1. Verificar que el cliente existe y obtener información de la mesa
   const cliente = await prisma.clienteTemporal.findUnique({
     where: { id },
@@ -179,8 +200,27 @@ export const updateClientStatus = async (id, status) => {
     throw error;
   }
 
-  // 2. Preparar datos de actualización
+  // CORRECCIÓN 1: Determinar el monto final real
+  // Si envían un monto nuevo, usamos ese. Si no, usamos el que ya estaba en BD.
+  const finalAmount = data.total_amount !== undefined ? data.total_amount : cliente.totalAmount;
+
+  // Validación: No permitir pedir cuenta o cerrar si el total es 0 o menor
+  if ((data.status === 'BILL_REQUESTED' || data.status === 'CLOSED') && finalAmount <= 0) {
+    const error = new Error('El monto total debe ser mayor a 0 para pedir cuenta o cerrar.');
+    error.code = 'ZERO_AMOUNT_ERROR';
+    throw error;
+  }
+
+  const { status } = data;
+
+  // CORRECCIÓN 2: Construir objeto de actualización plano
+  // No usar { data }, sino asignar propiedades directas
   const updateData = { status };
+
+  // Si nos enviaron un monto nuevo, lo guardamos
+  if (data.total_amount !== undefined) {
+    updateData.totalAmount = data.total_amount;
+  }
 
   // 3. Si el estado es CLOSED, establecer closedAt
   if (status === 'CLOSED') {
@@ -189,11 +229,12 @@ export const updateClientStatus = async (id, status) => {
 
   // 4. Ejecutar actualización y lógica de auto-liberación en una transacción
   let mesaLiberada = false;
+  
   const result = await prisma.$transaction(async (tx) => {
     // Actualizar el cliente
     const updatedCliente = await tx.clienteTemporal.update({
       where: { id },
-      data: updateData,
+      data: updateData, // Ahora sí tiene el formato correcto
     });
 
     // Si el estado es CLOSED, verificar si hay que liberar la mesa
@@ -221,15 +262,10 @@ export const updateClientStatus = async (id, status) => {
     return updatedCliente;
   });
 
-  // 5. Si el estado es BILL_REQUESTED, emitir alerta al panel de meseros
+  // 5. Determinar mensaje de respuesta
+  let message = 'Estado actualizado correctamente.';
   if (status === 'BILL_REQUESTED') {
-    emitBillRequestedAlert(cliente.table.tableNumber);
-  }
-
-  // 6. Determinar mensaje de respuesta
-  let message = '';
-  if (status === 'BILL_REQUESTED') {
-    message = `Mesa ${cliente.table.tableNumber} pide cuenta.`;
+    message = `Mesa ${cliente.table.tableNumber} pide cuenta. Total: $${finalAmount}`;
   } else if (status === 'CLOSED') {
     if (mesaLiberada) {
       message = 'Cliente cerrado exitosamente. Mesa liberada.';
@@ -238,14 +274,16 @@ export const updateClientStatus = async (id, status) => {
     }
   }
 
-  // 7. Retornar respuesta formateada
+  // 6. Retornar respuesta formateada
   return {
     success: true,
     message,
     data: {
       id: result.id,
       status: result.status,
+      total_amount: result.totalAmount, // Retornamos el monto confirmado
       closed_at: result.closedAt,
+      table_released: mesaLiberada // Dato útil para debug
     },
   };
 };

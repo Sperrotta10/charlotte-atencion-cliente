@@ -163,6 +163,14 @@ export const updateTableStatus = async (req, res) => {
       return res.status(409).json({ error: error.message });
     }
 
+    // Error cuando intentan poner en mantenimiento una mesa ocupada
+    if (error.code === 'TABLE_OCCUPIED_MAINTENANCE') {
+      return res.status(409).json({ 
+        error: 'Conflicto Operativo', 
+        message: error.message 
+      });
+    }
+
     console.error('Error actualizando estado de mesa:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
@@ -195,6 +203,10 @@ export const deleteTable = async (req, res) => {
     }
 
     if (error.code === 'TABLE_OCCUPIED' || error.code === 'ACTIVE_SESSIONS_EXIST') {
+      return res.status(409).json({ error: error.message });
+    }
+
+    if (error.code === 'TABLE_OUT_OF_SERVICE') {
       return res.status(409).json({ error: error.message });
     }
 

@@ -42,8 +42,8 @@ export const getTablesQuerySchema = z.preprocess(
       .transform((val) => parseInt(val, 10))
       .pipe(z.number().int().positive({ message: 'El límite debe ser mayor a 0' })),
     status: z
-      .enum(['AVAILABLE', 'OCCUPIED'], {
-        errorMap: () => ({ message: 'El status debe ser AVAILABLE u OCCUPIED' }),
+      .enum(['AVAILABLE', 'OCCUPIED', "OUT_OF_SERVICE"], {
+        errorMap: () => ({ message: 'El status debe ser AVAILABLE, OCCUPIED u OUT_OF_SERVICE' }),
       })
       .optional(),
   })
@@ -61,10 +61,10 @@ export const verifyQrSchema = z.object({
 
 // Esquema de validación para actualizar estado de mesa
 export const updateTableStatusSchema = z.object({
-  currentStatus: z.enum(['AVAILABLE', 'OUT_OF_SERVICE'], {
+  currentStatus: z.enum(['AVAILABLE', 'OUT_OF_SERVICE', 'OCCUPIED'], {
     required_error: 'El currentStatus es requerido',
-    invalid_type_error: 'El currentStatus debe ser AVAILABLE u OUT_OF_SERVICE',
-    errorMap: () => ({ message: 'El currentStatus debe ser AVAILABLE u OUT_OF_SERVICE' }),
+    invalid_type_error: 'El currentStatus debe ser AVAILABLE, OUT_OF_SERVICE u OCCUPIED',
+    errorMap: () => ({ message: 'El currentStatus debe ser AVAILABLE, OUT_OF_SERVICE u OCCUPIED' }),
   }),
 });
 

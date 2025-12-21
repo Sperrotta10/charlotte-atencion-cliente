@@ -209,13 +209,24 @@ export const updateTableStatus = async ({ id, currentStatus }) => {
     throw error;
   }
 
-  // 2. Si pasa a AVAILABLE, validar cierre de sesiones pendientes
+  // Calculamos cuántas personas hay (reutilizable)
+  const sesionesActivas = table.clientes.length;
+
+  // 2. CASO A: Si pasa a AVAILABLE, validar cierre de sesiones pendientes
   if (currentStatus === 'AVAILABLE') {
-    const sesionesActivas = table.clientes.length;
 
     if (sesionesActivas > 0) {
       const error = new Error('No se puede cambiar el estado a AVAILABLE. Existen sesiones activas pendientes de cierre');
       error.code = 'ACTIVE_SESSIONS_PENDING';
+      throw error;
+    }
+  }
+
+  // 3. CASO B (NUEVO): Si pasa a OUT_OF_SERVICE, validar que esté vacía
+  if (currentStatus === 'OUT_OF_SERVICE') {
+    if (sesionesActivas > 0) {
+      const error = new Error('No se puede inhabilitar una mesa con clientes activos. Espere a que se libere.');
+      error.code = 'TABLE_OCCUPIED_MAINTENANCE'; // Nuevo código de error
       throw error;
     }
   }
@@ -259,6 +270,12 @@ export const deleteTable = async ({ id }) => {
   if (table.currentStatus === 'OCCUPIED') {
     const error = new Error('No se puede eliminar una mesa ocupada. Libérela primero.');
     error.code = 'TABLE_OCCUPIED';
+    throw error;
+  }
+
+  if (table.currentStatus === 'OUT_OF_SERVICE') {
+    const error = new Error('No se puede eliminar una mesa fuera de servicio. Habilítela primero.');
+    error.code = 'TABLE_OUT_OF_SERVICE';
     throw error;
   }
 

@@ -77,7 +77,7 @@ export const updateClientStatus = async (req, res) => {
     // 3. Llamar al servicio de negocio
     const result = await clienteTemporalService.updateClientStatus(
       idValidation.data.id,
-      bodyValidation.data.status
+      bodyValidation.data
     );
 
     // 4. Retornar respuesta según especificación
@@ -86,6 +86,10 @@ export const updateClientStatus = async (req, res) => {
     // Manejo de errores específicos
     if (error.code === 'CLIENT_NOT_FOUND') {
       return res.status(404).json({ error: error.message });
+    }
+
+    if (error.code === 'ZERO_AMOUNT_ERROR') {
+      return res.status(400).json({ error: error.message });
     }
 
     console.error('Error actualizando estado del cliente:', error);

@@ -1,24 +1,34 @@
 import { z } from 'zod';
 
+// -------------------------------------------------------
+// 1. Schema para CREAR (POST)
+// -------------------------------------------------------
 export const createOrderSchema = z.object({
-  // Validamos que venga la Mesa
-  tableId: z.number().int().positive({ message: "El ID de la mesa es requerido" }),
+  // Nota general de la comanda (Ej: "Sin alergias")
+  notes: z.string().optional(),
+  
+  // Validamos mesa (opcional si usas token, pero bueno mantenerlo)
+  tableId: z.number().int().positive().optional(),
   
   items: z.array(
     z.object({
-      // Validamos IDs y Cantidades
-      productId: z.number().int().positive({ message: "El ID del producto es requerido" }),
-      quantity: z.number().int().positive({ message: "La cantidad debe ser mayor a 0" }),
+      // REQUISITO: Input en snake_case
+      product_id: z.number().int().positive({ message: "product_id es requerido" }),
       
-      // NUEVO Y CRÍTICO: El precio DEBE venir desde el frontend
-      unitPrice: z.number().positive({ message: "El precio unitario es obligatorio y debe ser positivo" }),
+      quantity: z.number().int().positive(),
       
-      // Comentario opcional
-      comment: z.string().optional()
+      // REQUISITO: Input en snake_case
+      special_instructions: z.string().optional(),
+
+      // REQUISITO LÓGICO: Como no hay tabla de productos, el precio DEBE venir
+      unit_price: z.number().positive({ message: "unit_price es requerido" })
     })
-  ).min(1, { message: "La comanda debe tener al menos un producto" })
+  ).min(1, { message: "La orden debe tener al menos un item" })
 });
 
+// -------------------------------------------------------
+// 2. Schema para ACTUALIZAR (PATCH)
+// -------------------------------------------------------
 export const updateOrderSchema = z.object({
   status: z.enum(['PENDING', 'COOKING', 'DELIVERED', 'CANCELLED'], {
     errorMap: () => ({ message: "El estado debe ser: PENDING, COOKING, DELIVERED o CANCELLED" })

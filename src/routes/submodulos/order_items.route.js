@@ -1,15 +1,23 @@
 import { Router } from 'express';
-import { createOrder, updateOrderStatus, getOrderById } from '../../controllers/submodulos/order_items.controller.js';
+import { 
+  createOrder, 
+  updateOrderStatus, 
+  getOrderById, 
+  getAllOrders 
+} from '../../controllers/submodulos/order_items.controller.js';
 
 const router = Router();
 
-// POST /api/v1/atencion-cliente/comandas
+// POST / (Crear)
 router.post('/', createOrder);
 
-// PATCH /api/v1/atencion-cliente/comandas/:id
-router.patch('/:id', updateOrderStatus);
+// GET / (Listar todas)
+router.get('/', getAllOrders);
 
-// GET /:id
+// GET /:id (Ver una)
 router.get('/:id', getOrderById);
+
+// PATCH /:id (Actualizar estado)
+router.patch('/:id', updateOrderStatus);
 
 export default router;

@@ -1,9 +1,10 @@
 import { OrderService } from '../../services/submodulos/order_items.service.js';
 import { createOrderSchema, updateOrderSchema } from '../../schemas/submodulos/order_items.schema.js';
 
+// 1. CREAR COMANDA (POST)
 export const createOrder = async (req, res) => {
   try {
-    // 1. Validar Datos (Zod)
+    // Validar Input
     const validation = createOrderSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -14,105 +15,66 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // 2. Llamar al Servicio
+    // Ejecutar Lógica
     const result = await OrderService.create(validation.data);
 
-    // 3. Responder Éxito (201 Created)
+    // RESPONDER (Formato estricto Req 1.3.1)
     res.status(201).json({
-      success: true,
-      message: 'Comanda creada correctamente',
-      data: result
+      id: result.id,
+      status: result.status
     });
 
   } catch (error) {
     console.error(error);
     
-    // Manejo de error específico de lógica de negocio
     if (error.message.includes('No hay un cliente activo')) {
-      return res.status(409).json({ // 409 Conflict
-        success: false,
-        message: error.message
-      });
+      return res.status(409).json({ success: false, message: error.message });
     }
 
-    // Error genérico del servidor
-    res.status(500).json({
-      success: false,
-      message: 'Error al procesar la comanda',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Error interno', error: error.message });
   }
 };
 
+// 2. ACTUALIZAR ESTADO (PATCH)
 export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // 1. Validación Estricta con Zod
     const validation = updateOrderSchema.safeParse(req.body);
 
     if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Estado inválido',
-        errors: validation.error.format()
-      });
+      return res.status(400).json({ success: false, errors: validation.error.format() });
     }
 
-    // 2. Llamada al Servicio (Lógica KPI interna)
     const updatedOrder = await OrderService.updateStatus(id, validation.data.status);
-
-    res.json({
-      success: true,
-      message: 'Estado de comanda actualizado',
-      data: updatedOrder
-    });
+    res.json({ success: true, message: 'Estado actualizado', data: updatedOrder });
 
   } catch (error) {
-    console.error(error);
-
-    // Manejo de error: Registro no encontrado (Prisma error P2025)
-    if (error.code === 'P2025') {
-      return res.status(404).json({
-        success: false,
-        message: 'Comanda no encontrada'
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: 'Error actualizando la comanda',
-      error: error.message
-    });
+    if (error.code === 'P2025') return res.status(404).json({ message: 'Comanda no encontrada' });
+    res.status(500).json({ message: 'Error actualizando', error: error.message });
   }
 };
+
+// 3. OBTENER POR ID (GET)
 export const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // 1. Llamar al Servicio
     const order = await OrderService.findById(id);
 
-    // 2. Validar Existencia (Lógica de Controlador)
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Comanda no encontrada'
-      });
-    }
+    if (!order) return res.status(404).json({ success: false, message: 'Comanda no encontrada' });
 
-    // 3. Responder
-    res.json({
-      success: true,
-      data: order
-    });
+    res.json({ success: true, data: order });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener la comanda',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Error al obtener', error: error.message });
+  }
+};
+
+// 4. LISTAR TODAS (GET)
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await OrderService.findAll();
+    res.json({ success: true, count: orders.length, data: orders });
+  } catch (error) {
+    res.status(500).json({ message: 'Error listando', error: error.message });
   }
 };

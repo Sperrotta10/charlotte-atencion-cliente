@@ -1,6 +1,9 @@
-import { ServiceRequestService } from '../../services/submodulos/service_request.service.js';
-import { createServiceRequestSchema } from '../../schemas/submodulos/service_request.schema.js';
-import { attendServiceRequestSchema } from '../../schemas/submodulos/service_request.schema.js';
+import { ServiceRequestService, getAllServiceRequests } from '../../services/submodulos/service_request.service.js';
+import { 
+  createServiceRequestSchema, 
+  attendServiceRequestSchema, 
+  getServiceRequestsQuerySchema 
+} from '../../schemas/submodulos/service_request.schema.js';
 
 // 1. POST: Crear Solicitud
 export const createServiceRequest = async (req, res) => {
@@ -34,13 +37,39 @@ export const createServiceRequest = async (req, res) => {
   }
 };
 
-// 2. GET: Obtener todas
+// 2. GET: Listar Solicitudes con Filtros (ESTA ES LA VERSIÓN CORRECTA "ESTILO VÍCTOR")
+// Reemplaza a la antigua función simple que tenías aquí.
 export const getServiceRequests = async (req, res) => {
   try {
-    const requests = await ServiceRequestService.findAll();
-    res.json({ success: true, data: requests });
+    // 1. Validar query params con Zod (Estilo Víctor: Validación estricta primero)
+    const validation = getServiceRequestsQuerySchema.safeParse(req.query);
+
+    if (!validation.success) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Parámetros de búsqueda inválidos',
+        errors: validation.error.format() 
+      });
+    }
+
+    // 2. Llamar al servicio de negocio pasando la data ya limpia y tipada
+    // Nota: Usamos la función exportada individualmente, no el objeto ServiceRequestService
+    const result = await getAllServiceRequests(validation.data);
+
+    // 3. Formatear salida estándar
+    return res.status(200).json({
+      success: true,
+      data: result.requests,
+      metadata: result.metadata,
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Error obteniendo solicitudes:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor',
+      error: error.message 
+    });
   }
 };
 

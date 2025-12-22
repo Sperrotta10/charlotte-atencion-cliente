@@ -35,3 +35,66 @@ export const ServiceRequestService = {
     });
   }
 };
+
+export const getAllServiceRequests = async ({ page, limit, status, type, table_id }) => {
+  // 1. Calcular el offset
+  const skip = (page - 1) * limit;
+
+  // 2. Construir el objeto where dinámico
+  const where = {};
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (type) {
+    where.type = type;
+  }
+
+  // CORRECCIÓN CLAVE: Filtramos por mesa A TRAVÉS del cliente
+  if (table_id) {
+    where.cliente = {
+      tableId: table_id
+    };
+  }
+
+  // 3. Obtener el total (Count)
+  const totalItems = await prisma.serviceRequest.count({ where });
+
+  // 4. Obtener la data (FindMany)
+  const requests = await prisma.serviceRequest.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: 'desc',
+    },
+    // El include sigue la ruta ServiceRequest -> Cliente -> Table
+    include: {
+      cliente: {
+        select: {
+          id: true,
+          customerName: true, // customerName
+          table: {
+            select: {
+              tableNumber: true // tableNumber
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // 5. Calcular metadatos
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return {
+    requests,
+    metadata: {
+      total_items: totalItems,
+      current_page: page,
+      per_page: limit,
+      total_pages: totalPages,
+    },
+  };
+};

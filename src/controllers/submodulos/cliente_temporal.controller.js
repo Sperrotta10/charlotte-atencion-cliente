@@ -1,5 +1,26 @@
 import * as clienteTemporalService from '../../services/submodulos/cliente_temporal.service.js';
-import { createSessionSchema, clientIdParamSchema, updateStatusSchema } from '../../schemas/submodulos/cliente_temporal.schema.js';
+import { createSessionSchema, clientIdParamSchema, updateStatusSchema, getClientsQuerySchema } from '../../schemas/submodulos/cliente_temporal.schema.js';
+
+// GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI)
+export const getClients = async (req, res) => {
+  try {
+    // 1. Validar query params con Zod
+    const validation = getClientsQuerySchema.safeParse(req.query);
+
+    if (!validation.success) {
+      return res.status(400).json({ errors: validation.error.format() });
+    }
+
+    // 2. Llamar al servicio de negocio
+    const result = await clienteTemporalService.getClients(validation.data);
+
+    // 3. Retornar respuesta según especificación
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Error obteniendo clientes:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
 
 // POST /clients - Crear Sesión (Login)
 export const createSession = async (req, res) => {

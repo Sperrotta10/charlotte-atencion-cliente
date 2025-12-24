@@ -52,3 +52,63 @@ export const updateStatusSchema = z.object({
   // Nuevo campo opcional: total_amount
   total_amount: z.number().min(0, "El monto no puede ser negativo").optional(),
 });
+
+// Esquema de validación para query params del GET /clients
+export const getClientsQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return 1;
+      const parsed = parseInt(val, 10);
+      return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+    })
+    .pipe(z.number().int().positive()),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return 10;
+      const parsed = parseInt(val, 10);
+      return isNaN(parsed) || parsed < 1 ? 10 : parsed;
+    })
+    .pipe(z.number().int().positive()),
+  status: z
+    .enum(['ACTIVE', 'BILL_REQUESTED', 'CLOSED'], {
+      errorMap: () => ({ message: 'El status debe ser ACTIVE, BILL_REQUESTED o CLOSED' }),
+    })
+    .optional(),
+  date_from: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        return !isNaN(date.getTime());
+      },
+      { message: 'date_from debe ser una fecha ISO válida' }
+    )
+    .transform((val) => (val ? new Date(val) : undefined)),
+  date_to: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        return !isNaN(date.getTime());
+      },
+      { message: 'date_to debe ser una fecha ISO válida' }
+    )
+    .transform((val) => (val ? new Date(val) : undefined)),
+  min_amount: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const parsed = parseFloat(val);
+      return isNaN(parsed) ? undefined : parsed;
+    })
+    .pipe(z.number().nonnegative().optional()),
+});

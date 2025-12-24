@@ -3,6 +3,9 @@ import * as clienteTemporalController from '../../controllers/submodulos/cliente
 
 const router = Router();
 
+// GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI)
+router.get('/', clienteTemporalController.getClients);
+
 // POST /clients - Crear Sesión (Login)
 router.post('/', clienteTemporalController.createSession);
 

@@ -288,3 +288,105 @@ export const updateClientStatus = async (id, data) => {
   };
 };
 
+/**
+ * Obtiene una lista paginada de clientes con filtros opcionales
+ * @param {Object} filters - Filtros de búsqueda: { page, limit, status, date_from, date_to, min_amount }
+ * @returns {Promise<Object>} Objeto con datos paginados y metadatos
+ */
+export const getClients = async ({ page = 1, limit = 10, status, date_from, date_to, min_amount }) => {
+  // 1. Construir filtros dinámicos
+  const where = {};
+
+  // Filtro por status
+  if (status) {
+    where.status = status;
+  }
+
+  // Filtro por monto mínimo
+  if (min_amount !== undefined && min_amount !== null) {
+    where.totalAmount = {
+      gte: min_amount,
+    };
+  }
+
+  // Filtro temporal (rango de fechas sobre createdAt)
+  if (date_from || date_to) {
+    where.createdAt = {};
+    if (date_from) {
+      where.createdAt.gte = date_from;
+    }
+    if (date_to) {
+      // Incluir todo el día hasta las 23:59:59
+      const endDate = new Date(date_to);
+      endDate.setHours(23, 59, 59, 999);
+      where.createdAt.lte = endDate;
+    }
+  }
+
+  // 2. Calcular skip y take para paginación
+  const skip = (page - 1) * limit;
+  const take = limit;
+
+  // 3. Determinar ordenamiento
+  let orderBy = {};
+  if (status === 'ACTIVE') {
+    // Orden ascendente (FIFO) para priorizar mesas con más tiempo de espera
+    orderBy = { createdAt: 'asc' };
+  } else if (status === 'CLOSED') {
+    // Orden descendente para mostrar los cierres más recientes
+    orderBy = { closedAt: 'desc' };
+  } else {
+    // Por defecto, orden descendente por fecha de creación
+    orderBy = { createdAt: 'desc' };
+  }
+
+  // 4. Ejecutar consulta con conteo total y datos paginados
+  const [totalItems, clients] = await Promise.all([
+    prisma.clienteTemporal.count({ where }),
+    prisma.clienteTemporal.findMany({
+      where,
+      skip,
+      take,
+      orderBy,
+      include: {
+        table: {
+          select: {
+            id: true,
+            tableNumber: true,
+            capacity: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  // 5. Calcular metadatos
+  const totalPages = Math.ceil(totalItems / limit);
+  const totalSalesInPage = clients.reduce((sum, client) => sum + (client.totalAmount || 0), 0);
+
+  // 6. Formatear respuesta según especificación
+  return {
+    success: true,
+    data: clients.map((client) => ({
+      id: client.id,
+      customer_name: client.customerName,
+      status: client.status,
+      total_amount: client.totalAmount,
+      created_at: client.createdAt,
+      closed_at: client.closedAt,
+      table: {
+        id: client.table.id,
+        table_number: client.table.tableNumber,
+        capacity: client.table.capacity,
+      },
+    })),
+    meta: {
+      total_items: totalItems,
+      current_page: page,
+      per_page: limit,
+      total_pages: totalPages,
+      total_sales_in_page: totalSalesInPage,
+    },
+  };
+};
+

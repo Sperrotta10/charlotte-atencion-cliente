@@ -1,5 +1,5 @@
 import { OrderService } from '../../services/submodulos/order_items.service.js';
-import { createOrderSchema, updateOrderSchema } from '../../schemas/submodulos/order_items.schema.js';
+import { createOrderSchema, updateOrderSchema, getOrdersQuerySchema } from '../../schemas/submodulos/order_items.schema.js';
 
 // 1. CREAR COMANDA (POST)
 export const createOrder = async (req, res) => {
@@ -69,12 +69,38 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-// 4. LISTAR TODAS (GET)
+
+// 4. OBTENER LISTADO (GET /)
+// -------------------------------------------------------
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await OrderService.findAll();
-    res.json({ success: true, count: orders.length, data: orders });
+    // 1. Validar y procesar Query Params con Zod
+    const validation = getOrdersQuerySchema.safeParse(req.query);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filtros inválidos',
+        errors: validation.error.format()
+      });
+    }
+
+    // 2. Llamar al servicio con los datos limpios
+    const result = await OrderService.findAll(validation.data);
+
+    // 3. Responder
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error listando', error: error.message });
+    console.error(error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al obtener comandas', 
+      error: error.message 
+    });
   }
 };

@@ -34,3 +34,30 @@ export const updateOrderSchema = z.object({
     errorMap: () => ({ message: "El estado debe ser: PENDING, COOKING, DELIVERED o CANCELLED" })
   })
 });
+
+// -------------------------------------------------------
+// 3. Schema para OBTENER (GET con Filtros) - Estilo Víctor
+// -------------------------------------------------------
+export const getOrdersQuerySchema = z.preprocess(
+  (data) => {
+    // Limpieza y valores por defecto
+    const processed = { ...data };
+    if (!processed.page) processed.page = '1';
+    if (!processed.limit) processed.limit = '20';
+    return processed;
+  },
+  z.object({
+    page: z.coerce.number().positive(),
+    limit: z.coerce.number().positive(),
+    
+    // Filtro por Estado (Opcional)
+    status: z.enum(['PENDING', 'COOKING', 'DELIVERED', 'CANCELLED']).optional(),
+    
+    // Filtro por Mesa (Opcional, convertimos string a numero)
+    table_id: z.coerce.number().int().positive().optional(),
+    
+    // Filtros de Fechas (Reportes históricos)
+    date_from: z.string().datetime({ message: "date_from debe ser formato ISO (YYYY-MM-DDTHH:mm:ssZ)" }).optional(),
+    date_to: z.string().datetime({ message: "date_to debe ser formato ISO" }).optional()
+  })
+);

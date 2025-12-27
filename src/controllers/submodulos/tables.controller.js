@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import * as tablesService from '../../services/submodulos/tables.service.js';
 import { createTableSchema, getTablesQuerySchema, verifyQrSchema, updateTableStatusSchema, tableIdParamSchema } from '../../schemas/submodulos/tables.schema.js';
 
@@ -217,8 +216,3 @@ export const deleteTable = async (req, res) => {
 };
 
 
-=======
-export const getTables = (req, res) => res.json({ message: "Listar mesas" });
-export const verifyQr = (req, res) => res.json({ message: "Verificar QR" });
-export const createTable = (req, res) => res.json({ message: "Crear mesa" });
->>>>>>> anibal

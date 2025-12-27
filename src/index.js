@@ -5,6 +5,8 @@ import exampleRoutes from './routes/example/example.routes.js';
 import mainAtencionClienteRoutes from './routes/main.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
+import swaggerUI from 'swagger-ui-express';
+import swaggerDocument from '../doc/posmant/atencion-cliente.openapi.json' with { type: 'json' };
 // Graceful Shutdown: Cerrar conexiones al detener el servidor
 import { prisma } from './db/client.js';
 
@@ -43,6 +45,9 @@ app.get('/api', (req, res) => {
 
 // Montar rutas de ejemplo
 app.use('/api/example', exampleRoutes);
+
+// Documentación de la API con Swagger
+app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 // Ruta de atención al cliente (route MAIN)
 app.use('/api/v1/atencion-cliente', mainAtencionClienteRoutes);

@@ -26,13 +26,48 @@ export const ServiceRequestService = {
 
   // 4. ATENDER SOLICITUD (Nueva - Lógica de PATCH)
   markAsAttended: async (id, data) => {
-    return await prisma.serviceRequest.update({
-      where: { id: Number(id) },
-      data: {
-        status: data.status,
-        attendedAt: new Date()
-      }
+    // 1. Buscar la solicitud actual para validar estado previo
+    const currentRequest = await prisma.serviceRequest.findUnique({
+      where: { id: Number(id) }
     });
+
+    if (!currentRequest) {
+      const error = new Error("Solicitud no encontrada");
+      error.code = 'REQUEST_NOT_FOUND';
+      throw error;
+    }
+
+    // 2. Validación de Regla de Negocio:
+    // Solo se pueden modificar las solicitudes que están en estado PENDING.
+    // No se puede cancelar ni re-atender una solicitud que ya fue cerrada.
+    if (currentRequest.status !== 'PENDING') {
+      const error = new Error(`No se puede modificar una solicitud que ya está en estado ${currentRequest.status}`);
+      error.code = 'INVALID_STATE_CHANGE';
+      throw error;
+    }
+
+    const newStatus = data.status;
+
+    // 3. Preparar datos de actualización
+    const updateData = {
+      status: newStatus
+    };
+
+    // Lógica de Tiempos (KPI):
+    // Si el nuevo estado es ATTENDED, marcamos la fecha de atención.
+    // Si es CANCELLED, NO marcamos attendedAt (o podrías marcarlo si tu lógica de negocio considera la cancelación como "atención").
+    // En este caso, asumiremos que solo ATTENDED lleva fecha.
+    if (newStatus === 'ATTENDED') {
+      updateData.attendedAt = new Date();
+    }
+
+    // 4. Ejecutar actualización en la base de datos
+    const updatedRequest = await prisma.serviceRequest.update({
+      where: { id: Number(id) },
+      data: updateData
+    });
+
+    return updatedRequest;
   }
 };
 

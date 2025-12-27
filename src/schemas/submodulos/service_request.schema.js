@@ -17,8 +17,11 @@ export const createServiceRequestSchema = z.object({
 });
 
 export const attendServiceRequestSchema = z.object({
-  status: z.enum(['ATTENDED'], {
-    errorMap: () => ({ message: "El estado debe ser 'ATTENDED'" })
+  status: z.enum(['ATTENDED', 'CANCELLED'], {
+    required_error: "El estado es requerido",
+    invalid_type_error: "El estado debe ser 'ATTENDED' o 'CANCELLED'",
+    // Personalizamos el mensaje de error para claridad
+    errorMap: () => ({ message: "El estado debe ser 'ATTENDED' o 'CANCELLED'" })
   })
 });
 

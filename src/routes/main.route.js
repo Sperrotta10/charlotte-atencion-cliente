@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import tablesRoutes from './submodulos/tables.route.js';
 import clienteTemporalRoutes from './submodulos/cliente_temporal.route.js';
+import serviceRequestRoutes from './submodulos/service_request.route.js';
+import orderRoutes from './submodulos/order_items.route.js';
 import { verifyGuest, verifyStaff } from '../middlewares/auth.js';
 
 const router = Router();
@@ -38,5 +40,10 @@ router.use('/tables', tablesRoutes);
 // 2. Recurso: Clientes (/clients)
 router.use('/clients', clienteTemporalRoutes);
 
-export default router;
+// 3. Rutas de servicio de solicitudes 
+router.use('/service-requests', serviceRequestRoutes);
 
+// 4. Rutas de gestión de comandas
+router.use('/comandas', orderRoutes);
+
+export default router;

@@ -5,6 +5,8 @@ import exampleRoutes from './routes/example/example.routes.js';
 import mainAtencionClienteRoutes from './routes/main.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
+// Graceful Shutdown: Cerrar conexiones al detener el servidor
+import { prisma } from './db/client.js';
 
 const app = express();
 
@@ -49,9 +51,6 @@ app.use('/api/v1/atencion-cliente', mainAtencionClienteRoutes);
 const server = app.listen(envs.PORT, () =>
   console.log(`🚀 Server ready at: http://localhost:${envs.PORT}`)
 );
-
-// Graceful Shutdown: Cerrar conexiones al detener el servidor
-import { prisma } from './db/client.js';
 
 const gracefulShutdown = async () => {
   console.log('\nCerrando servidor y desconectando base de datos...');

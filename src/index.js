@@ -2,8 +2,13 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { envs } from './config/envs.js';
 import exampleRoutes from './routes/example/example.routes.js';
+import mainAtencionClienteRoutes from './routes/main.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
+import swaggerUI from 'swagger-ui-express';
+import swaggerDocument from '../doc/posmant/atencion-cliente.openapi.json' with { type: 'json' };
+// Graceful Shutdown: Cerrar conexiones al detener el servidor
+import { prisma } from './db/client.js';
 
 const app = express();
 
@@ -41,18 +46,16 @@ app.get('/api', (req, res) => {
 // Montar rutas de ejemplo
 app.use('/api/example', exampleRoutes);
 
+// Documentación de la API con Swagger
+app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+
 // Ruta de atención al cliente (route MAIN)
-app.use('/api/v1/atencion-cliente', (req, res) => {
-  res.json({ message: 'Ruta de atención al cliente' });
-});
+app.use('/api/v1/atencion-cliente', mainAtencionClienteRoutes);
 
 // Iniciar servidor
 const server = app.listen(envs.PORT, () =>
   console.log(`🚀 Server ready at: http://localhost:${envs.PORT}`)
 );
-
-// Graceful Shutdown: Cerrar conexiones al detener el servidor
-import { prisma } from './db/client.js';
 
 const gracefulShutdown = async () => {
   console.log('\nCerrando servidor y desconectando base de datos...');

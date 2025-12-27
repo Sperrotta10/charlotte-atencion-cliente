@@ -8,23 +8,3895 @@
 	"item": [
 		{
 			"name": "tables",
-			"item": []
+			"item": [
+				{
+					"name": "Verificar QR de la mesa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Retorna Acción Válida\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.action).to.be.oneOf([\"NEW_SESSION\", \"JOIN_SESSION\"]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 403 Not Found\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Error específico\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.be.eql(\"Mesa fuera de servicio\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"qr_uuid\" : \"qr-mesa-10\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/verify-qr",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"tables",
+								"verify-qr"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "403 Forbidden",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"qr_uuid\" : \"qr-mesa-1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/verify-qr",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"verify-qr"
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "34"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"22-FUNhuwfhDZKNilOWUEORwwD9NDQ\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:23:48 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Mesa fuera de servicio\"\n}"
+						},
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"qr_uuid\" : \"qr-mesa-2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/verify-qr",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"verify-qr"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "54"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"36-u6+qwjV+hiUOICj7PAq4jjCvx9Y\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:24:26 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"table_id\": 2,\n    \"table_number\": 2,\n    \"action\": \"NEW_SESSION\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Obtener todas las mesas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Estructura de respuesta correcta\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to. be.true;\r",
+									"    pm.expect(jsonData.data).to.be.an('array');\r",
+									"    pm.expect(jsonData.metadata).to.exist;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Calculo de active_sessions existe\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(jsonData.data.length > 0){\r",
+									"         pm.expect(jsonData.data[0]).to.have.property('active_sessions');\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables?page=1&limit=10",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"tables"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "OCCUPIED",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "2368"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"940-7ffY0yAMw966Tp38/qTE+HAYhhc\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:13:31 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 1,\n            \"table_number\": 1,\n            \"qr_uuid\": \"qr-mesa-1\",\n            \"capacity\": 2,\n            \"current_status\": \"OUT_OF_SERVICE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 2,\n            \"table_number\": 2,\n            \"qr_uuid\": \"qr-mesa-2\",\n            \"capacity\": 2,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 4,\n            \"table_number\": 4,\n            \"qr_uuid\": \"qr-mesa-4\",\n            \"capacity\": 2,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 5,\n            \"table_number\": 5,\n            \"qr_uuid\": \"qr-mesa-5\",\n            \"capacity\": 2,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 6,\n            \"table_number\": 6,\n            \"qr_uuid\": \"qr-mesa-6\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 7,\n            \"table_number\": 7,\n            \"qr_uuid\": \"qr-mesa-7\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 8,\n            \"table_number\": 8,\n            \"qr_uuid\": \"qr-mesa-8\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 9,\n            \"table_number\": 9,\n            \"qr_uuid\": \"qr-mesa-9\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 10,\n            \"table_number\": 10,\n            \"qr_uuid\": \"qr-mesa-10\",\n            \"capacity\": 4,\n            \"current_status\": \"OCCUPIED\",\n            \"active_sessions\": 1\n        },\n        {\n            \"id\": 11,\n            \"table_number\": 11,\n            \"qr_uuid\": \"qr-mesa-11\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 12,\n            \"table_number\": 12,\n            \"qr_uuid\": \"qr-mesa-12\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 13,\n            \"table_number\": 13,\n            \"qr_uuid\": \"qr-mesa-13\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 14,\n            \"table_number\": 14,\n            \"qr_uuid\": \"qr-mesa-14\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 15,\n            \"table_number\": 15,\n            \"qr_uuid\": \"qr-mesa-15\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 16,\n            \"table_number\": 16,\n            \"qr_uuid\": \"qr-mesa-16\",\n            \"capacity\": 8,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 17,\n            \"table_number\": 17,\n            \"qr_uuid\": \"qr-mesa-17\",\n            \"capacity\": 8,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 18,\n            \"table_number\": 18,\n            \"qr_uuid\": \"qr-mesa-18\",\n            \"capacity\": 8,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 19,\n            \"table_number\": 19,\n            \"qr_uuid\": \"qr-mesa-19\",\n            \"capacity\": 8,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 20,\n            \"table_number\": 20,\n            \"qr_uuid\": \"qr-mesa-20\",\n            \"capacity\": 8,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        },\n        {\n            \"id\": 21,\n            \"table_number\": 21,\n            \"qr_uuid\": \"17e3d7a6-f409-405b-ab5c-be481df060ad\",\n            \"capacity\": 4,\n            \"current_status\": \"AVAILABLE\",\n            \"active_sessions\": 0\n        }\n    ],\n    \"metadata\": {\n        \"total_items\": 25,\n        \"current_page\": 1,\n        \"per_page\": 20,\n        \"total_pages\": 2\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Crear una mesa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Respuesta contiene qr_uuid\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('qr_uuid');\r",
+									"    // Guardamos el UUID para usarlo en la prueba de verificar QR\r",
+									"    pm.environment.set(\"temp_qr_uuid\", jsonData.qr_uuid);\r",
+									"    // Guardamos el ID para usarlo en Update/Delete\r",
+									"    pm.environment.set(\"temp_table_id\", jsonData.id);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 400 Bad Request\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Zod retorna errores de formato\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    // Verifica que venga la estructura de error de Zod\r",
+									"    pm.expect(jsonData).to.have.property('errors'); \r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 409 Conflict (Duplicado)\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Retorna mensaje de error correcto\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('error');\r",
+									"    pm.expect(jsonData.error).to.include(\"ya está registrado\"); // O el mensaje exacto que definiste\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \r\n    \"table_number\": 23, \r\n    \"capacity\": 6\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"tables"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "409 Conflict",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"table_number\": 10, \r\n    \"capacity\": 6\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "50"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"32-zQK+KNlvfsRl3mltcyGlccz1Kzo\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:07:16 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"El número de mesa ya está registrado\"\n}"
+						},
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"table_number\": 10, \r\n    \"capacity\": \"ajnsjsjjak\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "100"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"64-W52kaYxh1Xo/it1vAwR6uFlNZJM\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:08:33 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"errors\": {\n        \"_errors\": [],\n        \"capacity\": {\n            \"_errors\": [\n                \"Invalid input: expected number, received string\"\n            ]\n        }\n    }\n}"
+						},
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"table_number\": 23, \r\n    \"capacity\": 6\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "89"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"59-vd86a5fA7wAuulEr7g2ntvLAj5M\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:11:03 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 26,\n    \"table_number\": 23,\n    \"qr_uuid\": \"8c326994-a515-4a08-93f7-2667ba740acd\",\n    \"capacity\": 6\n}"
+						}
+					]
+				},
+				{
+					"name": "obtener mesa por id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"ID coincide\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"temp_table_id\")));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 404 Not Found\", function () {\r",
+									"    pm.response.to.have.status(404);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Error es específico\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql(\"Mesa no encontrada\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/12",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"tables",
+								"12"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/10",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"10"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "111"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"6f-7WnqM+wdLMfuP8g09H3t4XRn1D8\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:11:32 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 10,\n    \"table_number\": 10,\n    \"qr_uuid\": \"qr-mesa-10\",\n    \"capacity\": 4,\n    \"current_status\": \"OCCUPIED\",\n    \"active_sessions\": 1\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/100",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"100"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "30"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"1e-MxFK/9A9U1YWNAUpZ+GwWkHn5lI\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:12:00 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Mesa no encontrada\"\n}"
+						},
+						{
+							"name": "500 Internal Server Error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/ajjsjs",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"ajjsjs"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "38"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"26-TPHq3SznkB5cu6Yb1UG+2oZzErE\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:12:26 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Error interno del servidor\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Actualizar la mesa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Estado actualizado\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.current_status).to.eql(\"OUT_OF_SERVICE\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 404\", function () {\r",
+									"    pm.response.to.have.status(404);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Retorno invalido\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql(\"Mesa no encontrada\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \r\n    \"currentStatus\": \"OCCUPIED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/2",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"tables",
+								"2"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"currentStatus\": \"OUT_OF_SERVICE\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/100",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"100"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "30"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"1e-MxFK/9A9U1YWNAUpZ+GwWkHn5lI\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:29:25 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Mesa no encontrada\"\n}"
+						},
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"currentStatus\": \"sjkakaka\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/1",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"1"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "135"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"87-tkJU1mFU8UYWid0BSL3tRSJTbas\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:34:14 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"errors\": {\n        \"_errors\": [],\n        \"currentStatus\": {\n            \"_errors\": [\n                \"Invalid option: expected one of \\\"AVAILABLE\\\"|\\\"OUT_OF_SERVICE\\\"|\\\"OCCUPIED\\\"\"\n            ]\n        }\n    }\n}"
+						},
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"currentStatus\": \"OCCUPIED\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/2",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"2"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "88"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"58-jRnurRSq+PSeQNtu8UhSB3CrL2g\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:37:20 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 2,\n    \"table_number\": 2,\n    \"qr_uuid\": \"qr-mesa-2\",\n    \"capacity\": 2,\n    \"current_status\": \"OCCUPIED\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Eliminar una mesa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"No permite borrar mesa ocupada (409)\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Mensaje de protección operativo\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.include(\"No se puede eliminar una mesa ocupada\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/1",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"tables",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "409 conflict",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/2",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"2"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "69"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"45-/MZkU4LlyGTlkhpbQKLjLb+27u8\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:40:11 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"No se puede eliminar una mesa ocupada. Libérela primero.\"\n}"
+						},
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/tables/23",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"tables",
+										"23"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "76"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"4c-ba8nLWG/w1XjWiR+Lwh2tsqjh7Q\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 01:42:36 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Mesa 22 eliminada correctamente del inventario.\"\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragment\n\n# 📘 GUÍA DE DOCUMENTACIÓN POSTMAN: SUBMÓDULO MESAS\n\n`Tables`**Base URL:** `{{url_client}}/api/v1/atencion-cliente/tables`\n\n## 1\\. Crear Mesa (`POST`)\n\n- **Nombre:** `1.1.1 Crear Mesa`\n    \n- **Método:** `POST`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/tables`\n    \n- JSON{ \"table_number\": 10, \"capacity\": 6}\n    \n\n## 2\\. Monitor de Sala (`GET`)\n\n- **Nombre:** `1.1.2 Obtener Todas las Mesas`\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/tables?page=1&limit=10`\n    \n\n## 3\\. Verificar Código QR (`POST`)\n\n- **Nombre:** `1.1.3 Verificar QR`\n    \n- **Método:** `POST`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/tables/verify-qr`\n    \n- JSON{ \"qr_uuid\": \"{{temp_qr_uuid}}\"}\n    \n\n## 4\\. Obtener Mesa por ID (`GET`)\n\n- **Nombre:** `1.1.5 Obtener Mesa Detalle`\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/tables/{{temp_table_id}}`\n    \n\n## 5\\. Actualizar Estado (`PATCH`)\n\n- **Nombre:** `1.1.4 Actualizar Mesa`\n    \n- **Método:** `PATCH`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/tables/{{temp_table_id}}`\n    \n- JSON{ \"currentStatus\": \"OUT_OF_SERVICE\"}\n    \n\n## 6\\. Eliminar Mesa (`DELETE`)\n\n- **Nombre:** `1.1.6 Eliminar Mesa`\n    \n- **Método:** `DELETE`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/tables/{{temp_table_id}}`"
 		},
 		{
 			"name": "cliente_temporal",
-			"item": []
+			"item": [
+				{
+					"name": "Crear cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Script en Tests de \"Crear Sesión\"\r",
+									"var jsonData = pm.response.json();\r",
+									"if (jsonData.session_token) {\r",
+									"    pm.environment.set(\"token_cliente\", jsonData.session_token);\r",
+									"    \r",
+									"    // Opcional: Guardar también el ID para usarlo en las URL\r",
+									"    if(jsonData.client && jsonData.client.id) {\r",
+									"        pm.environment.set(\"temp_client_id\", jsonData.client.id);\r",
+									"    }\r",
+									"    \r",
+									"    console.log(\"✅ Token de cliente guardado exitosamente\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \r\n    \"table_id\": 6, \r\n    \"customer_name\": \"Marco\", \r\n    \"customer_dni\": \"12345678\" \r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"clients"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"table_id\": 5, \r\n    \"customer_name\": \"Juan\", \r\n    \"customer_dni\": \"123\" \r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "94"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"5e-y+9qurjB0I7uycyj4XgWEt/fnXA\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 03:51:19 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"errors\": {\n        \"_errors\": [],\n        \"customer_dni\": {\n            \"_errors\": [\n                \"El customer_dni no puede estar vacío\"\n            ]\n        }\n    }\n}"
+						},
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"table_id\": 6, \r\n    \"customer_name\": \"Pablo\", \r\n    \"customer_dni\": \"12345678\" \r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "283"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"11b-TOD9+K0lnkwqcM4TA0J6R36AGvE\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 04:01:59 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"session_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZV9pZCI6NiwiY3VzdG9tZXJfbmFtZSI6IlBhYmxvIiwiY3VzdG9tZXJfZG5pIjoiMTIzNDU2NzgiLCJpYXQiOjE3NjYyODk3MTgsImV4cCI6MTc2NjMwNDExOH0.CF6AU8TFnPJo8M7OZYrynUly65fHtF6SQoSBLxA2PlQ\",\n    \"client\": {\n        \"id\": 4,\n        \"name\": \"Pablo\",\n        \"status\": \"ACTIVE\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Obtener cliente por id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/2",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"clients",
+								"2"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/5",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients",
+										"5"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "186"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"ba-eehfsDTRm96x+PLlnTsIQC0z330\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 04:11:53 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 5,\n    \"name\": \"Marco\",\n    \"dni\": \"12345678\",\n    \"status\": \"CLOSED\",\n    \"table_id\": 6,\n    \"table_number\": 6,\n    \"total_amount\": 100,\n    \"created_at\": \"2025-12-21T04:04:28.767Z\",\n    \"closed_at\": \"2025-12-21T04:08:06.198Z\"\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/500",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients",
+										"500"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "33"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"21-+lCJhR+JKA1l8Ao+bk1gXRn7t3w\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 04:12:04 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Cliente no encontrado\"\n}"
+						},
+						{
+							"name": "500 internal server error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/teuw",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients",
+										"teuw"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "38"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"26-TPHq3SznkB5cu6Yb1UG+2oZzErE\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 04:12:21 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Error interno del servidor\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Actualizar cliente",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\" : \"CLOSED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/4",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"clients",
+								"4"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"status\" : \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/3",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients",
+										"3"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "112"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"70-yuRSllmXRCItlKRP9hokun4LY7A\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 03:52:29 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"errors\": {\n        \"_errors\": [],\n        \"status\": {\n            \"_errors\": [\n                \"Invalid option: expected one of \\\"BILL_REQUESTED\\\"|\\\"CLOSED\\\"\"\n            ]\n        }\n    }\n}"
+						},
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"total_amount\" : 100\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/4",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients",
+										"4"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "155"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"9b-n52JGR92BdopFK+NOdEvAQHogJg\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 21 Dec 2025 04:06:05 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Estado actualizado correctamente.\",\n    \"data\": {\n        \"id\": 4,\n        \"status\": \"ACTIVE\",\n        \"total_amount\": 100,\n        \"closed_at\": null,\n        \"table_released\": false\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "obtener clientes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients?page=1&limit=20&min_amount=50",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"clients"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "CLOSED",
+									"disabled": true
+								},
+								{
+									"key": "date_from",
+									"value": "2025-12-16T15:36:50.619Z",
+									"disabled": true
+								},
+								{
+									"key": "date_to",
+									"value": "2025-12-21T03:51:55.304Z",
+									"disabled": true
+								},
+								{
+									"key": "min_amount",
+									"value": "50"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok (page & limit & status)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients?page=1&limit=5&status=CLOSED",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "status",
+											"value": "CLOSED"
+										},
+										{
+											"key": "date_from",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "date_to",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "min_amount",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "514"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"202-YOlIPz4z5JDZ6AkrK82/c46f3ik\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 04:07:12 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 4,\n            \"customer_name\": \"Pablo\",\n            \"status\": \"CLOSED\",\n            \"total_amount\": 100,\n            \"created_at\": \"2025-12-21T04:01:58.791Z\",\n            \"closed_at\": \"2025-12-21T04:08:36.903Z\",\n            \"table\": {\n                \"id\": 6,\n                \"table_number\": 6,\n                \"capacity\": 4\n            }\n        },\n        {\n            \"id\": 5,\n            \"customer_name\": \"Marco\",\n            \"status\": \"CLOSED\",\n            \"total_amount\": 100,\n            \"created_at\": \"2025-12-21T04:04:28.767Z\",\n            \"closed_at\": \"2025-12-21T04:08:06.198Z\",\n            \"table\": {\n                \"id\": 6,\n                \"table_number\": 6,\n                \"capacity\": 4\n            }\n        }\n    ],\n    \"meta\": {\n        \"total_items\": 2,\n        \"current_page\": 1,\n        \"per_page\": 5,\n        \"total_pages\": 1,\n        \"total_sales_in_page\": 200\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & date_from & date_to)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients?page=1&limit=20&date_from=2025-12-16T15:36:50.619Z&date_to=2025-12-21T03:51:55.304Z",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "status",
+											"value": "CLOSED",
+											"disabled": true
+										},
+										{
+											"key": "date_from",
+											"value": "2025-12-16T15:36:50.619Z"
+										},
+										{
+											"key": "date_to",
+											"value": "2025-12-21T03:51:55.304Z"
+										},
+										{
+											"key": "min_amount",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "658"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"292-O3+aYB3guk904aL2zW4eIrZl8nk\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 04:10:20 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 3,\n            \"customer_name\": \"Juan\",\n            \"status\": \"BILL_REQUESTED\",\n            \"total_amount\": 0,\n            \"created_at\": \"2025-12-21T03:51:55.304Z\",\n            \"closed_at\": null,\n            \"table\": {\n                \"id\": 5,\n                \"table_number\": 5,\n                \"capacity\": 2\n            }\n        },\n        {\n            \"id\": 2,\n            \"customer_name\": \"Juan\",\n            \"status\": \"BILL_REQUESTED\",\n            \"total_amount\": 0,\n            \"created_at\": \"2025-12-20T20:57:30.072Z\",\n            \"closed_at\": null,\n            \"table\": {\n                \"id\": 10,\n                \"table_number\": 10,\n                \"capacity\": 4\n            }\n        },\n        {\n            \"id\": 1,\n            \"customer_name\": \"Juan Perez\",\n            \"status\": \"ACTIVE\",\n            \"total_amount\": 0,\n            \"created_at\": \"2025-12-16T15:36:50.619Z\",\n            \"closed_at\": null,\n            \"table\": {\n                \"id\": 1,\n                \"table_number\": 1,\n                \"capacity\": 2\n            }\n        }\n    ],\n    \"meta\": {\n        \"total_items\": 3,\n        \"current_page\": 1,\n        \"per_page\": 20,\n        \"total_pages\": 1,\n        \"total_sales_in_page\": 0\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & min_acount)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients?page=1&limit=20&min_amount=50",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "status",
+											"value": "CLOSED",
+											"disabled": true
+										},
+										{
+											"key": "date_from",
+											"value": "2025-12-16T15:36:50.619Z",
+											"disabled": true
+										},
+										{
+											"key": "date_to",
+											"value": "2025-12-21T03:51:55.304Z",
+											"disabled": true
+										},
+										{
+											"key": "min_amount",
+											"value": "50"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "515"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"203-eHRy2h4SF8YtIa3/ITWOl3BTFcA\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 04:11:14 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 5,\n            \"customer_name\": \"Marco\",\n            \"status\": \"CLOSED\",\n            \"total_amount\": 100,\n            \"created_at\": \"2025-12-21T04:04:28.767Z\",\n            \"closed_at\": \"2025-12-21T04:08:06.198Z\",\n            \"table\": {\n                \"id\": 6,\n                \"table_number\": 6,\n                \"capacity\": 4\n            }\n        },\n        {\n            \"id\": 4,\n            \"customer_name\": \"Pablo\",\n            \"status\": \"CLOSED\",\n            \"total_amount\": 100,\n            \"created_at\": \"2025-12-21T04:01:58.791Z\",\n            \"closed_at\": \"2025-12-21T04:08:36.903Z\",\n            \"table\": {\n                \"id\": 6,\n                \"table_number\": 6,\n                \"capacity\": 4\n            }\n        }\n    ],\n    \"meta\": {\n        \"total_items\": 2,\n        \"current_page\": 1,\n        \"per_page\": 20,\n        \"total_pages\": 1,\n        \"total_sales_in_page\": 200\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragment\n\n# 📘 GUÍA DE DOCUMENTACIÓN POSTMAN: SUBMÓDULO CLIENTES\n\n**Base URL:** `{{url_client}}/api/v1/atencion-cliente/clients`\n\n#### 1\\. Crear Sesión (Login)\n\n- **Nombre:** 1.2.1 Crear Sesión (Login)\n    \n- **Método:** `POST`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/clients`\n    \n- **Descripción:** Crea un cliente temporal y ocupa la mesa.\n    \n- **JSON (Body):**\n    \n\nJSON\n\n```\n{\n  \"table_id\": 10,\n  \"customer_name\": \"Juan Perez\",\n  \"customer_dni\": \"12345678\"\n}\n\n ```\n\n#### 2\\. Actualizar Cliente (Checkout/Status)\n\n- **Nombre:** 1.2.2 Actualizar Cliente (Checkout)\n    \n- **Método:** `PATCH`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/clients/{{temp_client_id}}`\n    \n- **Descripción:** Solicitud de cuenta o cierre administrativo. Si es CLOSED y es el último, libera la mesa.\n    \n- **JSON (Body):**\n    \n\nJSON\n\n```\n{\n  \"status\": \"BILL_REQUESTED\",\n  \"total_amount\": 120.50\n}\n\n ```\n\n#### 3\\. Obtener Cliente por ID\n\n- **Nombre:** 1.2.3 Obtener Cliente Detalle\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/clients/:id`\n    \n\n#### 4\\. Obtener Clientes (Monitor/KPI)\n\n- **Nombre:** 1.2.4 Listar Clientes (Monitor)\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/clients?page=1&limit=10&status=CLOSED`\n    \n- **Query Params Sugeridos:**\n    \n    - `status`: ACTIVE | BILL_REQUESTED | CLOSED\n        \n    - `date_from`: YYYY-MM-DD\n        \n    - `min_amount`: 100\n        \n\nEndFragment"
 		},
 		{
 			"name": "comanda",
-			"item": []
-		},
-		{
-			"name": "order_items",
-			"item": []
+			"item": [
+				{
+					"name": "crear orden",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"notes\": \"El cliente es alérgico al brocoli\",\r\n  \"items\": [\r\n    {\r\n      \"product_id\": 206,\r\n      \"quantity\": 2,\r\n      \"unit_price\": 12.50,\r\n      \"special_instructions\": \"Bien cocido\"\r\n    },\r\n    {\r\n      \"product_id\": 556,\r\n      \"quantity\": 1,\r\n      \"unit_price\": 3.00,\r\n      \"special_instructions\": \"Sin hielo\"\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"comandas"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"notes\": \"El cliente es alérgico al brocoli\",\r\n  \"items\": [\r\n    {\r\n      \"product_id\": 205,\r\n      \"quantity\": 2,\r\n      \"unit_price\": 12.50,\r\n      \"special_instructions\": \"Bien cocido\"\r\n    },\r\n    {\r\n      \"product_id\": 555,\r\n      \"quantity\": 1,\r\n      \"unit_price\": 3.00,\r\n      \"special_instructions\": \"Sin hielo\"\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "28"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"1c-ztiIhDtzvkmP32FK3Vwtpgx/BHs\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:32:10 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 12,\n    \"status\": \"PENDING\"\n}"
+						},
+						{
+							"name": "400 Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"notes\": \"El cliente es alérgico al brocoli\",\r\n  \"items\": [\r\n    {\r\n      \"product_id\": true,\r\n      \"quantity\": 2,\r\n      \"unit_price\": 12.50,\r\n      \"special_instructions\": \"Bien cocido\"\r\n    },\r\n    {\r\n      \"product_id\": 556,\r\n      \"quantity\": 1,\r\n      \"unit_price\": 3.00,\r\n      \"special_instructions\": \"Sin hielo\"\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "190"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"be-Rexl3uYsa6q8Xti6pdfnMemt8y0\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:39:28 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Datos inválidos\",\n    \"errors\": {\n        \"_errors\": [],\n        \"items\": {\n            \"0\": {\n                \"_errors\": [],\n                \"product_id\": {\n                    \"_errors\": [\n                        \"Invalid input: expected number, received boolean\"\n                    ]\n                }\n            },\n            \"_errors\": []\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "obtener ordenes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas?page=1&limit=10&status=PENDING&table_id=1&date_from=2025-12-22T13:03:52.534Z&date_to=2025-12-22T19:00:22.982Z",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"comandas"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "PENDING"
+								},
+								{
+									"key": "table_id",
+									"value": "1"
+								},
+								{
+									"key": "date_from",
+									"value": "2025-12-22T13:03:52.534Z"
+								},
+								{
+									"key": "date_to",
+									"value": "2025-12-22T19:00:22.982Z"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok (page & limit & status & table_id)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas?page=1&limit=10&status=DELIVERED&table_id=1",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "status",
+											"value": "DELIVERED"
+										},
+										{
+											"key": "table_id",
+											"value": "1"
+										},
+										{
+											"key": "date_from",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "date_to",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "688"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"2b0-hOhYo1jxBybw6shkQfHm8i3Fm94\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:45:49 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 2,\n            \"status\": \"DELIVERED\",\n            \"notes\": null,\n            \"sent_at\": \"2025-12-22T12:59:29.251Z\",\n            \"delivered_at\": \"2025-12-24T01:51:10.083Z\",\n            \"table_number\": 1,\n            \"items\": [\n                {\n                    \"product_name\": \"Producto #101\",\n                    \"quantity\": 2,\n                    \"special_instructions\": \"Sin salsas\"\n                },\n                {\n                    \"product_name\": \"Producto #205\",\n                    \"quantity\": 1,\n                    \"special_instructions\": \"Bien fria\"\n                }\n            ]\n        },\n        {\n            \"id\": 1,\n            \"status\": \"DELIVERED\",\n            \"notes\": null,\n            \"sent_at\": \"2025-12-22T12:56:47.858Z\",\n            \"delivered_at\": \"2025-12-22T17:11:17.063Z\",\n            \"table_number\": 1,\n            \"items\": [\n                {\n                    \"product_name\": \"Producto #101\",\n                    \"quantity\": 2,\n                    \"special_instructions\": \"Sin salsas\"\n                },\n                {\n                    \"product_name\": \"Producto #205\",\n                    \"quantity\": 1,\n                    \"special_instructions\": \"Bien fria\"\n                }\n            ]\n        }\n    ],\n    \"meta\": {\n        \"total\": 2,\n        \"page\": 1,\n        \"limit\": 10\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & status & table_id & date_from & date_to)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas?page=1&limit=10&status=PENDING&table_id=1&date_from=2025-12-22T13:03:52.534Z&date_to=2025-12-22T19:00:22.982Z",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "status",
+											"value": "PENDING"
+										},
+										{
+											"key": "table_id",
+											"value": "1"
+										},
+										{
+											"key": "date_from",
+											"value": "2025-12-22T13:03:52.534Z"
+										},
+										{
+											"key": "date_to",
+											"value": "2025-12-22T19:00:22.982Z"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "760"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"2f8-sf5e8b6+rmiIEiwH2cSCwQ3gcgU\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:49:36 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 3,\n            \"status\": \"PENDING\",\n            \"notes\": null,\n            \"sent_at\": \"2025-12-22T13:03:52.534Z\",\n            \"delivered_at\": null,\n            \"table_number\": 1,\n            \"items\": [\n                {\n                    \"product_name\": \"Producto #500\",\n                    \"quantity\": 1,\n                    \"special_instructions\": null\n                }\n            ]\n        },\n        {\n            \"id\": 4,\n            \"status\": \"PENDING\",\n            \"notes\": null,\n            \"sent_at\": \"2025-12-22T13:04:05.288Z\",\n            \"delivered_at\": null,\n            \"table_number\": 1,\n            \"items\": [\n                {\n                    \"product_name\": \"Producto #500\",\n                    \"quantity\": 1,\n                    \"special_instructions\": null\n                }\n            ]\n        },\n        {\n            \"id\": 5,\n            \"status\": \"PENDING\",\n            \"notes\": \"Sin alergias, mesa VIP\",\n            \"sent_at\": \"2025-12-22T19:00:22.982Z\",\n            \"delivered_at\": null,\n            \"table_number\": 1,\n            \"items\": [\n                {\n                    \"product_name\": \"Producto #10\",\n                    \"quantity\": 2,\n                    \"special_instructions\": \"Sin hielo\"\n                },\n                {\n                    \"product_name\": \"Producto #55\",\n                    \"quantity\": 1,\n                    \"special_instructions\": null\n                }\n            ]\n        }\n    ],\n    \"meta\": {\n        \"total\": 3,\n        \"page\": 1,\n        \"limit\": 10\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "obtener orden",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/3",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"comandas",
+								"3"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/2",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas",
+										"2"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "570"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"23a-SX1J3rNs1Rv55T8wZKr2+FYcypY\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:50:55 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": {\n        \"id\": 2,\n        \"clienteId\": 1,\n        \"status\": \"DELIVERED\",\n        \"notes\": null,\n        \"sentAt\": \"2025-12-22T12:59:29.251Z\",\n        \"deliveredAt\": \"2025-12-24T01:51:10.083Z\",\n        \"items\": [\n            {\n                \"id\": 3,\n                \"comandaId\": 2,\n                \"productId\": 101,\n                \"quantity\": 2,\n                \"unitPrice\": 12.5,\n                \"specialInstructions\": \"Sin salsas\"\n            },\n            {\n                \"id\": 4,\n                \"comandaId\": 2,\n                \"productId\": 205,\n                \"quantity\": 1,\n                \"unitPrice\": 5,\n                \"specialInstructions\": \"Bien fria\"\n            }\n        ],\n        \"cliente\": {\n            \"id\": 1,\n            \"tableId\": 1,\n            \"sessionToken\": \"token123\",\n            \"customerName\": \"Juan Perez\",\n            \"customerDni\": \"12345678\",\n            \"status\": \"ACTIVE\",\n            \"totalAmount\": 0,\n            \"createdAt\": \"2025-12-16T15:36:50.619Z\",\n            \"closedAt\": null\n        }\n    }\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/200",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas",
+										"200"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "51"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"33-aGwbh7CuK7rlSBOhSUi3Yrasx+g\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:51:29 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Comanda no encontrada\"\n}"
+						},
+						{
+							"name": "500 Internar Server Error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/true",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas",
+										"true"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "216"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"d8-7wf2VR8W5O2tJLDuykcqXOH06ao\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 02:52:13 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Error al obtener\",\n    \"error\": \"\\nInvalid `prisma.comanda.findUnique()` invocation:\\n\\n{\\n  where: {\\n+   id: Int\\n  },\\n  include: {\\n    items: true,\\n    cliente: true\\n  }\\n}\\n\\nArgument `id` is missing.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "actualizar orden",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\" : \"CANCELLED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/4",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"comandas",
+								"4"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"status\" : \"COOKING\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/3",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas",
+										"3"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "533"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"215-ibIGx9/HOz9dArpuYAGjdpY/JsU\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 03:08:06 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Estado actualizado\",\n    \"data\": {\n        \"id\": 3,\n        \"clienteId\": 1,\n        \"status\": \"COOKING\",\n        \"notes\": null,\n        \"sentAt\": \"2025-12-22T13:03:52.534Z\",\n        \"deliveredAt\": null,\n        \"items\": [\n            {\n                \"id\": 5,\n                \"comandaId\": 3,\n                \"productId\": 500,\n                \"quantity\": 1,\n                \"unitPrice\": 20,\n                \"specialInstructions\": null\n            }\n        ],\n        \"cliente\": {\n            \"id\": 1,\n            \"tableId\": 1,\n            \"sessionToken\": \"token123\",\n            \"customerName\": \"Juan Perez\",\n            \"customerDni\": \"12345678\",\n            \"status\": \"ACTIVE\",\n            \"totalAmount\": 0,\n            \"createdAt\": \"2025-12-16T15:36:50.619Z\",\n            \"closedAt\": null\n        },\n        \"clientMessage\": \"Hola Juan Perez, su pedido está ahora cooking.\"\n    }\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"status\" : \"COOKING\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/300",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas",
+										"300"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "35"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"23-gI9ufTciU4CHyLLdAWCkw583nSA\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 03:11:20 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Comanda no encontrada\"\n}"
+						},
+						{
+							"name": "409 Conflict",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"status\" : \"CANCELLED\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/4",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"comandas",
+										"4"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "90"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"5a-TN/dxKMlEwGTe9eePvIywKEXZWE\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 03:16:35 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"No se puede cancelar una orden que ya está en preparación o fue entregada.\"\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragment\n\n# 📘 GUÍA DE DOCUMENTACIÓN POSTMAN: SUBMÓDULO COMANDAS\n\n**Base URL:** `{{url_client}}/api/v1/atencion-cliente/comandas`\n\n#### 1\\. Crear Comanda\n\n- **Nombre:** 1.3.1 Crear Comanda\n    \n- **Método:** `POST`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/comandas`\n    \n- **Descripción:** Envía el pedido a cocina. Requiere Token de Cliente.\n    \n- **JSON (Body):**\n    \n\nJSON\n\n```\n{\n  \"notes\": \"Sin alergias, salsa aparte\",\n  \"items\": [\n    {\n      \"product_id\": 101,\n      \"quantity\": 2,\n      \"special_instructions\": \"Sin hielo\"\n    },\n    {\n      \"product_id\": 205,\n      \"quantity\": 1,\n      \"special_instructions\": \"Bien cocido\"\n    }\n  ]\n}\n\n ```\n\n#### 2\\. Actualizar Estado Comanda\n\n- **Nombre:** 1.3.2 Actualizar Estado Comanda\n    \n- **Método:** `PATCH`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/comandas/{{temp_comanda_id}}`\n    \n- **Descripción:** Usado por Cocina/KDS.\n    \n- **JSON (Body):**\n    \n\nJSON\n\n```\n{\n  \"status\": \"COOKING\"\n}\n\n ```\n\n#### 3\\. Obtener Comanda por ID\n\n- **Nombre:** 1.3.3 Obtener Comanda Detalle\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/comandas/:id`\n    \n\n#### 4\\. Listar Comandas (KDS/Trazabilidad)\n\n- **Nombre:** 1.3.4 Listar Comandas\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/comandas?status=PENDING&table_id=10`\n    \n- **Query Params Sugeridos:**\n    \n    - `status`: PENDING | COOKING | DELIVERED\n        \n    - `table_id`: 10\n        \n\n---\n\n### 📂 Carpeta: Atención al Cliente > Order Items\n\n**Base URL:** `{{url_client}}/api/v1/atencion-cliente/order-items`\n\n#### 1\\. Eliminar Ítem\n\n- **Nombre:** 1.4.1 Eliminar Ítem\n    \n- **Método:** `DELETE`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/order-items/{{temp_item_id}}`\n    \n- **Descripción:** Solo permitido si la comanda padre sigue en `PENDING`.\n    \n\nEndFragment"
 		},
 		{
 			"name": "service_request",
-			"item": []
+			"item": [
+				{
+					"name": "crear solicitud de servicio",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\" : \"COMPLAINT\",\r\n    \"message\" : \"La comida estaba fria\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"service-requests"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\" : \"COMPLAINT\",\r\n    \"message\" : \"La comida estaba fria\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "176"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"b0-boXCMWvtUxSei9euZyn3jFyLQUM\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 01:19:01 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": {\n        \"id\": 11,\n        \"clienteId\": 1,\n        \"type\": \"COMPLAINT\",\n        \"message\": \"La comida estaba fria\",\n        \"status\": \"PENDING\",\n        \"createdAt\": \"2025-12-27T01:19:01.271Z\",\n        \"attendedAt\": null\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Actualizar solicitud de servicio",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\" : \"CANCELLED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/3",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"service-requests",
+								"3"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"status\" : \"ATTENDED\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/1",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "257"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"101-vmLSBtTgPrLYiN7haw8yPbzORmE\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 00:38:01 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Solicitud atendida correctamente\",\n    \"data\": {\n        \"id\": 1,\n        \"clienteId\": 1,\n        \"type\": \"CALL_WAITER\",\n        \"message\": \"Por favor traer servilletas extra\",\n        \"status\": \"ATTENDED\",\n        \"createdAt\": \"2025-12-16T16:03:09.277Z\",\n        \"attendedAt\": \"2025-12-27T00:38:00.744Z\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "obtener solicitud de servicio por id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/2",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"service-requests",
+								"2"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/50",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests",
+										"50"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "53"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"35-hXBfalsI2IBx8vyG9vT8Chvlz/c\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 00:38:18 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Solicitud no encontrada\"\n}"
+						},
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/2",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests",
+										"2"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "212"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"d4-vRmgJRmzOZyh9cl/LqclRSs+7Hc\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 00:38:31 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": {\n        \"id\": 2,\n        \"clienteId\": 1,\n        \"type\": \"CALL_WAITER\",\n        \"message\": \"Por favor traer servilletas extra\",\n        \"status\": \"ATTENDED\",\n        \"createdAt\": \"2025-12-16T16:04:14.610Z\",\n        \"attendedAt\": \"2025-12-16T16:17:34.732Z\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "obtener solicitudes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=5&status=PENDING&table_id=1&type=COMPLAINT",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"service-requests"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								},
+								{
+									"key": "status",
+									"value": "PENDING"
+								},
+								{
+									"key": "table_id",
+									"value": "1"
+								},
+								{
+									"key": "type",
+									"value": "COMPLAINT"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok (page&limit)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=5",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "status",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "table_id",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "957"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"3bd-aZE5doYYSAdEVB7GmRpcqToKi4U\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 01:14:00 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 10,\n            \"type\": \"COMPLAINT\",\n            \"message\": \"La sopa está fría (Nueva)\",\n            \"status\": \"ATTENDED\",\n            \"created_at\": \"2025-12-22T19:19:51.856Z\",\n            \"attended_at\": \"2025-12-22T19:22:07.838Z\",\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 9,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"La cuenta por favor (Medio)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:19:48.617Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 8,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:17:00.687Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 7,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:15:09.891Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 6,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:14:54.721Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        }\n    ],\n    \"meta\": {\n        \"total\": 10,\n        \"page\": 1,\n        \"limit\": 5,\n        \"totalPages\": 2\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & status=PENDING)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=5&status=PENDING",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "status",
+											"value": "PENDING"
+										},
+										{
+											"key": "table_id",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "928"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"3a0-qXO4NzM2HrjZl8Lvc96z5M18Zpg\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 01:14:53 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 3,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer servilletas extra\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-16T16:07:38.974Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 4,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer la cuenta\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-17T01:29:02.998Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 5,\n            \"type\": \"COMPLAINT\",\n            \"message\": \"La comida estaba fria\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-21T19:24:00.460Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 6,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:14:54.721Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 7,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:15:09.891Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        }\n    ],\n    \"meta\": {\n        \"total\": 7,\n        \"page\": 1,\n        \"limit\": 5,\n        \"totalPages\": 2\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & table_id)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=2&limit=5&table_id=1",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										},
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "status",
+											"value": "PENDING",
+											"disabled": true
+										},
+										{
+											"key": "table_id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "983"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"3d7-HDS72klef5k5CMZP5MbUnkKCQ/k\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 01:16:14 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 5,\n            \"type\": \"COMPLAINT\",\n            \"message\": \"La comida estaba fria\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-21T19:24:00.460Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 4,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer la cuenta\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-17T01:29:02.998Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 3,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer servilletas extra\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-16T16:07:38.974Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 2,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer servilletas extra\",\n            \"status\": \"ATTENDED\",\n            \"created_at\": \"2025-12-16T16:04:14.610Z\",\n            \"attended_at\": \"2025-12-16T16:17:34.732Z\",\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 1,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer servilletas extra\",\n            \"status\": \"ATTENDED\",\n            \"created_at\": \"2025-12-16T16:03:09.277Z\",\n            \"attended_at\": \"2025-12-27T00:38:00.744Z\",\n            \"table_info\": {\n                \"id\": 1\n            }\n        }\n    ],\n    \"meta\": {\n        \"total\": 10,\n        \"page\": 2,\n        \"limit\": 5,\n        \"totalPages\": 2\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & status & table_id)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=5&status=PENDING&table_id=1",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "status",
+											"value": "PENDING"
+										},
+										{
+											"key": "table_id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "928"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"3a0-qXO4NzM2HrjZl8Lvc96z5M18Zpg\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 01:17:01 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 3,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer servilletas extra\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-16T16:07:38.974Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 4,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Por favor traer la cuenta\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-17T01:29:02.998Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 5,\n            \"type\": \"COMPLAINT\",\n            \"message\": \"La comida estaba fria\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-21T19:24:00.460Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 6,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:14:54.721Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 7,\n            \"type\": \"CALL_WAITER\",\n            \"message\": \"Mesa 1 necesita ayuda (Vieja)\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-22T19:15:09.891Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        }\n    ],\n    \"meta\": {\n        \"total\": 7,\n        \"page\": 1,\n        \"limit\": 5,\n        \"totalPages\": 2\n    }\n}"
+						},
+						{
+							"name": "200 ok (page & limit & status & table_id & type)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=5&status=PENDING&table_id=1&type=COMPLAINT",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"service-requests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "status",
+											"value": "PENDING"
+										},
+										{
+											"key": "table_id",
+											"value": "1"
+										},
+										{
+											"key": "type",
+											"value": "COMPLAINT"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "403"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"193-oiGzAIDPdwLlvXHWWYYljlC+tlY\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 27 Dec 2025 01:26:21 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 5,\n            \"type\": \"COMPLAINT\",\n            \"message\": \"La comida estaba fria\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-21T19:24:00.460Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        },\n        {\n            \"id\": 11,\n            \"type\": \"COMPLAINT\",\n            \"message\": \"La comida estaba fria\",\n            \"status\": \"PENDING\",\n            \"created_at\": \"2025-12-27T01:19:01.271Z\",\n            \"attended_at\": null,\n            \"table_info\": {\n                \"id\": 1\n            }\n        }\n    ],\n    \"meta\": {\n        \"total\": 2,\n        \"page\": 1,\n        \"limit\": 5,\n        \"totalPages\": 1\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragment\n\n# 📘 GUÍA DE DOCUMENTACIÓN POSTMAN: SUBMÓDULO SERVICE REQUESTs\n\n**Base URL:** `{{url_client}}/api/v1/atencion-cliente/service-requests`\n\n#### 1\\. Crear Solicitud\n\n- **Nombre:** 1.5.1 Crear Solicitud (Ayuda)\n    \n- **Método:** `POST`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/service-requests`\n    \n- **JSON (Body):**\n    \n\nJSON\n\n```\n{\n  \"type\": \"CALL_WAITER\",\n  \"message\": \"Necesito la cuenta y datáfono\"\n}\n\n ```\n\n#### 2\\. Atender Solicitud\n\n- **Nombre:** 1.5.2 Atender Solicitud\n    \n- **Método:** `PATCH`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/service-requests/{{temp_request_id}}`\n    \n- **Descripción:** Marca la incidencia como resuelta.\n    \n- **JSON (Body):**\n    \n\nJSON\n\n```\n{\n  \"status\": \"ATTENDED\"\n}\n\n ```\n\n#### 3\\. Obtener Solicitud por ID\n\n- **Nombre:** 1.5.3 Obtener Solicitud Detalle\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/service-requests/{{temp_request_id}}`\n    \n\n#### 4\\. Listar Solicitudes (Monitor)\n\n- **Nombre:** 1.5.4 Listar Solicitudes\n    \n- **Método:** `GET`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/service-requests?status=PENDING`\n    \n- **Query Params Sugeridos:**\n    \n    - `status`: PENDING | ATTENDED\n        \n    - `type`: CALL_WAITER | COMPLAINT\n        \n\n#### 5\\. Eliminar Solicitud\n\n- **Nombre:** 1.5.5 Eliminar Solicitud\n    \n- **Método:** `DELETE`\n    \n- **URL:** `{{url_client}}/api/v1/atencion-cliente/service-requests/{{temp_request_id}}`\n    \n- **Descripción:** Solo Maître/Admin o limpieza de spam.\n    \n\nEndFragment"
 		},
 		{
 			"name": "example",
@@ -133,6 +4005,30 @@
 					]
 				}
 			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }

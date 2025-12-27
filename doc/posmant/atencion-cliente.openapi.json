@@ -1,0 +1,2949 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "atencion-cliente",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Raíz"
+    },
+    {
+      "name": "Raíz/tables"
+    },
+    {
+      "name": "Raíz/cliente_temporal"
+    },
+    {
+      "name": "Raíz/comanda"
+    },
+    {
+      "name": "Raíz/service_request"
+    },
+    {
+      "name": "Raíz/example"
+    }
+  ],
+  "paths": {
+    "/api/v1/atencion-cliente/tables/verify-qr": {
+      "post": {
+        "summary": "Verificar QR de la mesa",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/tables"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "qr_uuid": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "qr_uuid"
+                ]
+              },
+              "example": {
+                "qr_uuid": "qr-mesa-10"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "table_id": {
+                      "type": "integer"
+                    },
+                    "table_number": {
+                      "type": "integer"
+                    },
+                    "action": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "table_id",
+                    "table_number",
+                    "action"
+                  ]
+                },
+                "example": {
+                  "table_id": 2,
+                  "table_number": 2,
+                  "action": "NEW_SESSION"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Mesa fuera de servicio"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/tables": {
+      "get": {
+        "summary": "Obtener todas las mesas",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/tables"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "10",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "OCCUPIED",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "table_number": {
+                            "type": "integer"
+                          },
+                          "qr_uuid": {
+                            "type": "string"
+                          },
+                          "capacity": {
+                            "type": "integer"
+                          },
+                          "current_status": {
+                            "type": "string"
+                          },
+                          "active_sessions": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "table_number",
+                          "qr_uuid",
+                          "capacity",
+                          "current_status",
+                          "active_sessions"
+                        ]
+                      }
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "total_items": {
+                          "type": "integer"
+                        },
+                        "current_page": {
+                          "type": "integer"
+                        },
+                        "per_page": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "total_items",
+                        "current_page",
+                        "per_page",
+                        "total_pages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "metadata"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": 1,
+                      "table_number": 1,
+                      "qr_uuid": "qr-mesa-1",
+                      "capacity": 2,
+                      "current_status": "OUT_OF_SERVICE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 2,
+                      "table_number": 2,
+                      "qr_uuid": "qr-mesa-2",
+                      "capacity": 2,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 4,
+                      "table_number": 4,
+                      "qr_uuid": "qr-mesa-4",
+                      "capacity": 2,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 5,
+                      "table_number": 5,
+                      "qr_uuid": "qr-mesa-5",
+                      "capacity": 2,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 6,
+                      "table_number": 6,
+                      "qr_uuid": "qr-mesa-6",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 7,
+                      "table_number": 7,
+                      "qr_uuid": "qr-mesa-7",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 8,
+                      "table_number": 8,
+                      "qr_uuid": "qr-mesa-8",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 9,
+                      "table_number": 9,
+                      "qr_uuid": "qr-mesa-9",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 10,
+                      "table_number": 10,
+                      "qr_uuid": "qr-mesa-10",
+                      "capacity": 4,
+                      "current_status": "OCCUPIED",
+                      "active_sessions": 1
+                    },
+                    {
+                      "id": 11,
+                      "table_number": 11,
+                      "qr_uuid": "qr-mesa-11",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 12,
+                      "table_number": 12,
+                      "qr_uuid": "qr-mesa-12",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 13,
+                      "table_number": 13,
+                      "qr_uuid": "qr-mesa-13",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 14,
+                      "table_number": 14,
+                      "qr_uuid": "qr-mesa-14",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 15,
+                      "table_number": 15,
+                      "qr_uuid": "qr-mesa-15",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 16,
+                      "table_number": 16,
+                      "qr_uuid": "qr-mesa-16",
+                      "capacity": 8,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 17,
+                      "table_number": 17,
+                      "qr_uuid": "qr-mesa-17",
+                      "capacity": 8,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 18,
+                      "table_number": 18,
+                      "qr_uuid": "qr-mesa-18",
+                      "capacity": 8,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 19,
+                      "table_number": 19,
+                      "qr_uuid": "qr-mesa-19",
+                      "capacity": 8,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 20,
+                      "table_number": 20,
+                      "qr_uuid": "qr-mesa-20",
+                      "capacity": 8,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    },
+                    {
+                      "id": 21,
+                      "table_number": 21,
+                      "qr_uuid": "17e3d7a6-f409-405b-ab5c-be481df060ad",
+                      "capacity": 4,
+                      "current_status": "AVAILABLE",
+                      "active_sessions": 0
+                    }
+                  ],
+                  "metadata": {
+                    "total_items": 25,
+                    "current_page": 1,
+                    "per_page": 20,
+                    "total_pages": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "summary": "Crear una mesa",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/tables"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "table_number": {
+                    "type": "integer"
+                  },
+                  "capacity": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "table_number",
+                  "capacity"
+                ]
+              },
+              "example": {
+                "table_number": 23,
+                "capacity": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "table_number": {
+                      "type": "integer"
+                    },
+                    "qr_uuid": {
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "table_number",
+                    "qr_uuid",
+                    "capacity"
+                  ]
+                },
+                "example": {
+                  "id": 26,
+                  "table_number": 23,
+                  "qr_uuid": "8c326994-a515-4a08-93f7-2667ba740acd",
+                  "capacity": 6
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "_errors": {
+                          "type": "array",
+                          "items": {}
+                        },
+                        "capacity": {
+                          "type": "object",
+                          "properties": {
+                            "_errors": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "_errors"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_errors",
+                        "capacity"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "errors"
+                  ]
+                },
+                "example": {
+                  "errors": {
+                    "_errors": [],
+                    "capacity": {
+                      "_errors": [
+                        "Invalid input: expected number, received string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "El número de mesa ya está registrado"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/tables/12": {
+      "get": {
+        "summary": "obtener mesa por id",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/tables"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "table_number": {
+                      "type": "integer"
+                    },
+                    "qr_uuid": {
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "type": "integer"
+                    },
+                    "current_status": {
+                      "type": "string"
+                    },
+                    "active_sessions": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "table_number",
+                    "qr_uuid",
+                    "capacity",
+                    "current_status",
+                    "active_sessions"
+                  ]
+                },
+                "example": {
+                  "id": 10,
+                  "table_number": 10,
+                  "qr_uuid": "qr-mesa-10",
+                  "capacity": 4,
+                  "current_status": "OCCUPIED",
+                  "active_sessions": 1
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Mesa no encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Error interno del servidor"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/tables/2": {
+      "patch": {
+        "summary": "Actualizar la mesa",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/tables"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentStatus": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "currentStatus"
+                ]
+              },
+              "example": {
+                "currentStatus": "OCCUPIED"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "table_number": {
+                      "type": "integer"
+                    },
+                    "qr_uuid": {
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "type": "integer"
+                    },
+                    "current_status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "table_number",
+                    "qr_uuid",
+                    "capacity",
+                    "current_status"
+                  ]
+                },
+                "example": {
+                  "id": 2,
+                  "table_number": 2,
+                  "qr_uuid": "qr-mesa-2",
+                  "capacity": 2,
+                  "current_status": "OCCUPIED"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "_errors": {
+                          "type": "array",
+                          "items": {}
+                        },
+                        "currentStatus": {
+                          "type": "object",
+                          "properties": {
+                            "_errors": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "_errors"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_errors",
+                        "currentStatus"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "errors"
+                  ]
+                },
+                "example": {
+                  "errors": {
+                    "_errors": [],
+                    "currentStatus": {
+                      "_errors": [
+                        "Invalid option: expected one of \"AVAILABLE\"|\"OUT_OF_SERVICE\"|\"OCCUPIED\""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Mesa no encontrada"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/tables/1": {
+      "delete": {
+        "summary": "Eliminar una mesa",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/tables"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Mesa 22 eliminada correctamente del inventario."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "No se puede eliminar una mesa ocupada. Libérela primero."
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/clients": {
+      "post": {
+        "summary": "Crear cliente",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/cliente_temporal"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "table_id": {
+                    "type": "integer"
+                  },
+                  "customer_name": {
+                    "type": "string"
+                  },
+                  "customer_dni": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "table_id",
+                  "customer_name",
+                  "customer_dni"
+                ]
+              },
+              "example": {
+                "table_id": 6,
+                "customer_name": "Marco",
+                "customer_dni": "12345678"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session_token": {
+                      "type": "string"
+                    },
+                    "client": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "session_token",
+                    "client"
+                  ]
+                },
+                "example": {
+                  "session_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZV9pZCI6NiwiY3VzdG9tZXJfbmFtZSI6IlBhYmxvIiwiY3VzdG9tZXJfZG5pIjoiMTIzNDU2NzgiLCJpYXQiOjE3NjYyODk3MTgsImV4cCI6MTc2NjMwNDExOH0.CF6AU8TFnPJo8M7OZYrynUly65fHtF6SQoSBLxA2PlQ",
+                  "client": {
+                    "id": 4,
+                    "name": "Pablo",
+                    "status": "ACTIVE"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "_errors": {
+                          "type": "array",
+                          "items": {}
+                        },
+                        "customer_dni": {
+                          "type": "object",
+                          "properties": {
+                            "_errors": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "_errors"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_errors",
+                        "customer_dni"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "errors"
+                  ]
+                },
+                "example": {
+                  "errors": {
+                    "_errors": [],
+                    "customer_dni": {
+                      "_errors": [
+                        "El customer_dni no puede estar vacío"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "get": {
+        "summary": "obtener clientes",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/cliente_temporal"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "20",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "CLOSED",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "2025-12-16T15:36:50.619Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "2025-12-21T03:51:55.304Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "min_amount",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "50",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "customer_name": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "total_amount": {
+                            "type": "integer"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "closed_at": {
+                            "type": "string"
+                          },
+                          "table": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "table_number": {
+                                "type": "integer"
+                              },
+                              "capacity": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "table_number",
+                              "capacity"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "customer_name",
+                          "status",
+                          "total_amount",
+                          "created_at",
+                          "closed_at",
+                          "table"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total_items": {
+                          "type": "integer"
+                        },
+                        "current_page": {
+                          "type": "integer"
+                        },
+                        "per_page": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        },
+                        "total_sales_in_page": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "total_items",
+                        "current_page",
+                        "per_page",
+                        "total_pages",
+                        "total_sales_in_page"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": 4,
+                      "customer_name": "Pablo",
+                      "status": "CLOSED",
+                      "total_amount": 100,
+                      "created_at": "2025-12-21T04:01:58.791Z",
+                      "closed_at": "2025-12-21T04:08:36.903Z",
+                      "table": {
+                        "id": 6,
+                        "table_number": 6,
+                        "capacity": 4
+                      }
+                    },
+                    {
+                      "id": 5,
+                      "customer_name": "Marco",
+                      "status": "CLOSED",
+                      "total_amount": 100,
+                      "created_at": "2025-12-21T04:04:28.767Z",
+                      "closed_at": "2025-12-21T04:08:06.198Z",
+                      "table": {
+                        "id": 6,
+                        "table_number": 6,
+                        "capacity": 4
+                      }
+                    }
+                  ],
+                  "meta": {
+                    "total_items": 2,
+                    "current_page": 1,
+                    "per_page": 5,
+                    "total_pages": 1,
+                    "total_sales_in_page": 200
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/clients/2": {
+      "get": {
+        "summary": "Obtener cliente por id",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/cliente_temporal"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "dni": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "table_id": {
+                      "type": "integer"
+                    },
+                    "table_number": {
+                      "type": "integer"
+                    },
+                    "total_amount": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "closed_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "dni",
+                    "status",
+                    "table_id",
+                    "table_number",
+                    "total_amount",
+                    "created_at",
+                    "closed_at"
+                  ]
+                },
+                "example": {
+                  "id": 5,
+                  "name": "Marco",
+                  "dni": "12345678",
+                  "status": "CLOSED",
+                  "table_id": 6,
+                  "table_number": 6,
+                  "total_amount": 100,
+                  "created_at": "2025-12-21T04:04:28.767Z",
+                  "closed_at": "2025-12-21T04:08:06.198Z"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Cliente no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Error interno del servidor"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/clients/4": {
+      "patch": {
+        "summary": "Actualizar cliente",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/cliente_temporal"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "example": {
+                "status": "CLOSED"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "total_amount": {
+                          "type": "integer"
+                        },
+                        "closed_at": {
+                          "type": "null"
+                        },
+                        "table_released": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status",
+                        "total_amount",
+                        "closed_at",
+                        "table_released"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Estado actualizado correctamente.",
+                  "data": {
+                    "id": 4,
+                    "status": "ACTIVE",
+                    "total_amount": 100,
+                    "closed_at": null,
+                    "table_released": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "_errors": {
+                          "type": "array",
+                          "items": {}
+                        },
+                        "status": {
+                          "type": "object",
+                          "properties": {
+                            "_errors": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "_errors"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_errors",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "errors"
+                  ]
+                },
+                "example": {
+                  "errors": {
+                    "_errors": [],
+                    "status": {
+                      "_errors": [
+                        "Invalid option: expected one of \"BILL_REQUESTED\"|\"CLOSED\""
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/comandas": {
+      "post": {
+        "summary": "crear orden",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/comanda"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "product_id": {
+                          "type": "integer"
+                        },
+                        "quantity": {
+                          "type": "integer"
+                        },
+                        "unit_price": {
+                          "type": "number"
+                        },
+                        "special_instructions": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "product_id",
+                        "quantity",
+                        "unit_price",
+                        "special_instructions"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "notes",
+                  "items"
+                ]
+              },
+              "example": {
+                "notes": "El cliente es alérgico al brocoli",
+                "items": [
+                  {
+                    "product_id": 206,
+                    "quantity": 2,
+                    "unit_price": 12.5,
+                    "special_instructions": "Bien cocido"
+                  },
+                  {
+                    "product_id": 556,
+                    "quantity": 1,
+                    "unit_price": 3,
+                    "special_instructions": "Sin hielo"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status"
+                  ]
+                },
+                "example": {
+                  "id": 12,
+                  "status": "PENDING"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "_errors": {
+                          "type": "array",
+                          "items": {}
+                        },
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "0": {
+                              "type": "object",
+                              "properties": {
+                                "_errors": {
+                                  "type": "array",
+                                  "items": {}
+                                },
+                                "product_id": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_errors": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "_errors"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "_errors",
+                                "product_id"
+                              ]
+                            },
+                            "_errors": {
+                              "type": "array",
+                              "items": {}
+                            }
+                          },
+                          "required": [
+                            "0",
+                            "_errors"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "_errors",
+                        "items"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "errors"
+                  ]
+                },
+                "example": {
+                  "success": false,
+                  "message": "Datos inválidos",
+                  "errors": {
+                    "_errors": [],
+                    "items": {
+                      "0": {
+                        "_errors": [],
+                        "product_id": {
+                          "_errors": [
+                            "Invalid input: expected number, received boolean"
+                          ]
+                        }
+                      },
+                      "_errors": []
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "get": {
+        "summary": "obtener ordenes",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/comanda"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "10",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "PENDING",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "table_id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "2025-12-22T13:03:52.534Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "2025-12-22T19:00:22.982Z",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "notes": {
+                            "type": "null"
+                          },
+                          "sent_at": {
+                            "type": "string"
+                          },
+                          "delivered_at": {
+                            "type": "string"
+                          },
+                          "table_number": {
+                            "type": "integer"
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "product_name": {
+                                  "type": "string"
+                                },
+                                "quantity": {
+                                  "type": "integer"
+                                },
+                                "special_instructions": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "product_name",
+                                "quantity",
+                                "special_instructions"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "notes",
+                          "sent_at",
+                          "delivered_at",
+                          "table_number",
+                          "items"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "page",
+                        "limit"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": 2,
+                      "status": "DELIVERED",
+                      "notes": null,
+                      "sent_at": "2025-12-22T12:59:29.251Z",
+                      "delivered_at": "2025-12-24T01:51:10.083Z",
+                      "table_number": 1,
+                      "items": [
+                        {
+                          "product_name": "Producto #101",
+                          "quantity": 2,
+                          "special_instructions": "Sin salsas"
+                        },
+                        {
+                          "product_name": "Producto #205",
+                          "quantity": 1,
+                          "special_instructions": "Bien fria"
+                        }
+                      ]
+                    },
+                    {
+                      "id": 1,
+                      "status": "DELIVERED",
+                      "notes": null,
+                      "sent_at": "2025-12-22T12:56:47.858Z",
+                      "delivered_at": "2025-12-22T17:11:17.063Z",
+                      "table_number": 1,
+                      "items": [
+                        {
+                          "product_name": "Producto #101",
+                          "quantity": 2,
+                          "special_instructions": "Sin salsas"
+                        },
+                        {
+                          "product_name": "Producto #205",
+                          "quantity": 1,
+                          "special_instructions": "Bien fria"
+                        }
+                      ]
+                    }
+                  ],
+                  "meta": {
+                    "total": 2,
+                    "page": 1,
+                    "limit": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/comandas/3": {
+      "get": {
+        "summary": "obtener orden",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/comanda"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "clienteId": {
+                          "type": "integer"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "notes": {
+                          "type": "null"
+                        },
+                        "sentAt": {
+                          "type": "string"
+                        },
+                        "deliveredAt": {
+                          "type": "string"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "comandaId": {
+                                "type": "integer"
+                              },
+                              "productId": {
+                                "type": "integer"
+                              },
+                              "quantity": {
+                                "type": "integer"
+                              },
+                              "unitPrice": {
+                                "type": "number"
+                              },
+                              "specialInstructions": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "comandaId",
+                              "productId",
+                              "quantity",
+                              "unitPrice",
+                              "specialInstructions"
+                            ]
+                          }
+                        },
+                        "cliente": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "tableId": {
+                              "type": "integer"
+                            },
+                            "sessionToken": {
+                              "type": "string"
+                            },
+                            "customerName": {
+                              "type": "string"
+                            },
+                            "customerDni": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "totalAmount": {
+                              "type": "integer"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            },
+                            "closedAt": {
+                              "type": "null"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "tableId",
+                            "sessionToken",
+                            "customerName",
+                            "customerDni",
+                            "status",
+                            "totalAmount",
+                            "createdAt",
+                            "closedAt"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "clienteId",
+                        "status",
+                        "notes",
+                        "sentAt",
+                        "deliveredAt",
+                        "items",
+                        "cliente"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": 2,
+                    "clienteId": 1,
+                    "status": "DELIVERED",
+                    "notes": null,
+                    "sentAt": "2025-12-22T12:59:29.251Z",
+                    "deliveredAt": "2025-12-24T01:51:10.083Z",
+                    "items": [
+                      {
+                        "id": 3,
+                        "comandaId": 2,
+                        "productId": 101,
+                        "quantity": 2,
+                        "unitPrice": 12.5,
+                        "specialInstructions": "Sin salsas"
+                      },
+                      {
+                        "id": 4,
+                        "comandaId": 2,
+                        "productId": 205,
+                        "quantity": 1,
+                        "unitPrice": 5,
+                        "specialInstructions": "Bien fria"
+                      }
+                    ],
+                    "cliente": {
+                      "id": 1,
+                      "tableId": 1,
+                      "sessionToken": "token123",
+                      "customerName": "Juan Perez",
+                      "customerDni": "12345678",
+                      "status": "ACTIVE",
+                      "totalAmount": 0,
+                      "createdAt": "2025-12-16T15:36:50.619Z",
+                      "closedAt": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "success": false,
+                  "message": "Comanda no encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "error"
+                  ]
+                },
+                "example": {
+                  "message": "Error al obtener",
+                  "error": "\nInvalid `prisma.comanda.findUnique()` invocation:\n\n{\n  where: {\n+   id: Int\n  },\n  include: {\n    items: true,\n    cliente: true\n  }\n}\n\nArgument `id` is missing."
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/comandas/4": {
+      "patch": {
+        "summary": "actualizar orden",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/comanda"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "example": {
+                "status": "CANCELLED"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "clienteId": {
+                          "type": "integer"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "notes": {
+                          "type": "null"
+                        },
+                        "sentAt": {
+                          "type": "string"
+                        },
+                        "deliveredAt": {
+                          "type": "null"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "comandaId": {
+                                "type": "integer"
+                              },
+                              "productId": {
+                                "type": "integer"
+                              },
+                              "quantity": {
+                                "type": "integer"
+                              },
+                              "unitPrice": {
+                                "type": "integer"
+                              },
+                              "specialInstructions": {
+                                "type": "null"
+                              }
+                            }
+                          }
+                        },
+                        "cliente": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "tableId": {
+                              "type": "integer"
+                            },
+                            "sessionToken": {
+                              "type": "string"
+                            },
+                            "customerName": {
+                              "type": "string"
+                            },
+                            "customerDni": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "totalAmount": {
+                              "type": "integer"
+                            },
+                            "createdAt": {
+                              "type": "string"
+                            },
+                            "closedAt": {
+                              "type": "null"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "tableId",
+                            "sessionToken",
+                            "customerName",
+                            "customerDni",
+                            "status",
+                            "totalAmount",
+                            "createdAt",
+                            "closedAt"
+                          ]
+                        },
+                        "clientMessage": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "clienteId",
+                        "status",
+                        "notes",
+                        "sentAt",
+                        "deliveredAt",
+                        "items",
+                        "cliente",
+                        "clientMessage"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Estado actualizado",
+                  "data": {
+                    "id": 3,
+                    "clienteId": 1,
+                    "status": "COOKING",
+                    "notes": null,
+                    "sentAt": "2025-12-22T13:03:52.534Z",
+                    "deliveredAt": null,
+                    "items": [
+                      {
+                        "id": 5,
+                        "comandaId": 3,
+                        "productId": 500,
+                        "quantity": 1,
+                        "unitPrice": 20,
+                        "specialInstructions": null
+                      }
+                    ],
+                    "cliente": {
+                      "id": 1,
+                      "tableId": 1,
+                      "sessionToken": "token123",
+                      "customerName": "Juan Perez",
+                      "customerDni": "12345678",
+                      "status": "ACTIVE",
+                      "totalAmount": 0,
+                      "createdAt": "2025-12-16T15:36:50.619Z",
+                      "closedAt": null
+                    },
+                    "clientMessage": "Hola Juan Perez, su pedido está ahora cooking."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                },
+                "example": {
+                  "message": "Comanda no encontrada"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                },
+                "example": {
+                  "message": "No se puede cancelar una orden que ya está en preparación o fue entregada."
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/service-requests": {
+      "post": {
+        "summary": "crear solicitud de servicio",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/service_request"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "message"
+                ]
+              },
+              "example": {
+                "type": "COMPLAINT",
+                "message": "La comida estaba fria"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "clienteId": {
+                          "type": "integer"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "attendedAt": {
+                          "type": "null"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "clienteId",
+                        "type",
+                        "message",
+                        "status",
+                        "createdAt",
+                        "attendedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": 11,
+                    "clienteId": 1,
+                    "type": "COMPLAINT",
+                    "message": "La comida estaba fria",
+                    "status": "PENDING",
+                    "createdAt": "2025-12-27T01:19:01.271Z",
+                    "attendedAt": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "get": {
+        "summary": "obtener solicitudes",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/service_request"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "5",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "PENDING",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "table_id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "COMPLAINT",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "attended_at": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "table_info": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "message",
+                          "status",
+                          "created_at",
+                          "attended_at",
+                          "table_info"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "page",
+                        "limit",
+                        "totalPages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "meta"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": 10,
+                      "type": "COMPLAINT",
+                      "message": "La sopa está fría (Nueva)",
+                      "status": "ATTENDED",
+                      "created_at": "2025-12-22T19:19:51.856Z",
+                      "attended_at": "2025-12-22T19:22:07.838Z",
+                      "table_info": {
+                        "id": 1
+                      }
+                    },
+                    {
+                      "id": 9,
+                      "type": "CALL_WAITER",
+                      "message": "La cuenta por favor (Medio)",
+                      "status": "PENDING",
+                      "created_at": "2025-12-22T19:19:48.617Z",
+                      "attended_at": null,
+                      "table_info": {
+                        "id": 1
+                      }
+                    },
+                    {
+                      "id": 8,
+                      "type": "CALL_WAITER",
+                      "message": "Mesa 1 necesita ayuda (Vieja)",
+                      "status": "PENDING",
+                      "created_at": "2025-12-22T19:17:00.687Z",
+                      "attended_at": null,
+                      "table_info": {
+                        "id": 1
+                      }
+                    },
+                    {
+                      "id": 7,
+                      "type": "CALL_WAITER",
+                      "message": "Mesa 1 necesita ayuda (Vieja)",
+                      "status": "PENDING",
+                      "created_at": "2025-12-22T19:15:09.891Z",
+                      "attended_at": null,
+                      "table_info": {
+                        "id": 1
+                      }
+                    },
+                    {
+                      "id": 6,
+                      "type": "CALL_WAITER",
+                      "message": "Mesa 1 necesita ayuda (Vieja)",
+                      "status": "PENDING",
+                      "created_at": "2025-12-22T19:14:54.721Z",
+                      "attended_at": null,
+                      "table_info": {
+                        "id": 1
+                      }
+                    }
+                  ],
+                  "meta": {
+                    "total": 10,
+                    "page": 1,
+                    "limit": 5,
+                    "totalPages": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/service-requests/3": {
+      "patch": {
+        "summary": "Actualizar solicitud de servicio",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/service_request"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "example": {
+                "status": "CANCELLED"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "clienteId": {
+                          "type": "integer"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "attendedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "clienteId",
+                        "type",
+                        "message",
+                        "status",
+                        "createdAt",
+                        "attendedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Solicitud atendida correctamente",
+                  "data": {
+                    "id": 1,
+                    "clienteId": 1,
+                    "type": "CALL_WAITER",
+                    "message": "Por favor traer servilletas extra",
+                    "status": "ATTENDED",
+                    "createdAt": "2025-12-16T16:03:09.277Z",
+                    "attendedAt": "2025-12-27T00:38:00.744Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/atencion-cliente/service-requests/2": {
+      "get": {
+        "summary": "obtener solicitud de servicio por id",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/service_request"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "clienteId": {
+                          "type": "integer"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "attendedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "clienteId",
+                        "type",
+                        "message",
+                        "status",
+                        "createdAt",
+                        "attendedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "id": 2,
+                    "clienteId": 1,
+                    "type": "CALL_WAITER",
+                    "message": "Por favor traer servilletas extra",
+                    "status": "ATTENDED",
+                    "createdAt": "2025-12-16T16:04:14.610Z",
+                    "attendedAt": "2025-12-16T16:17:34.732Z"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "success": false,
+                  "message": "Solicitud no encontrada"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api": {
+      "get": {
+        "summary": "obtener users",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Raíz/example"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "up": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "up"
+                  ]
+                },
+                "example": {
+                  "up": true
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "responses": {},
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

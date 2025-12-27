@@ -11,297 +11,182 @@ import { envs } from '../config/envs.js';
  */
 export const verifyGuest = async (req, res, next) => {
   try {
-    // 1. Extraer el token del header Authorization
+    // 1. Extracción del token
     const authHeader = req.headers.authorization;
-    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         error: 'No autorizado',
-        message: 'Token de autenticación no proporcionado. Formato esperado: Bearer <token>'
+        message: 'Token no proporcionado.'
       });
     }
 
-    const token = authHeader.substring(7); // Remover "Bearer "
+    const token = authHeader.substring(7);
 
-    // 2. Decodificar y verificar el token usando JWT_SECRET
+    // 2. Verificación criptográfica (JWT)
+    // Nota: Asumimos que compartes el SECRET con el módulo de seguridad o usas clave pública/privada.
     let decoded;
     try {
       decoded = jwt.verify(token, envs.JWT_SECRET);
     } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          error: 'Token expirado',
-          message: 'El token de sesión ha expirado. Por favor, inicia sesión nuevamente.'
-        });
-      }
-      if (error.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-          error: 'Token inválido',
-          message: 'El token proporcionado no es válido.'
-        });
-      }
-      throw error;
+      return res.status(401).json({ error: 'Token inválido o expirado' });
     }
 
-    // 3. Verificar que el token contenga información de cliente temporal
-    // Los tokens de cliente deben tener al menos table_id
-    if (!decoded.table_id) {
+    // 3. VALIDACIÓN DE ESTADO CONTRA BASE DE DATOS (El paso crítico)
+    // Buscamos al cliente por el token exacto y verificamos que esté ACTIVO.
+    const currentClient = await prisma.clienteTemporal.findUnique({
+      where: { 
+        sessionToken: token 
+      },
+      include: {
+        table: true // Opcional: si necesitas datos de la mesa
+      }
+    });
+
+    // 4. Casos de rechazo de sesión
+    if (!currentClient) {
       return res.status(403).json({
-        error: 'Token inválido para cliente',
-        message: 'El token no contiene la información necesaria de cliente temporal.'
+        error: 'Sesión no encontrada',
+        message: 'Esta sesión no existe en nuestros registros.'
       });
     }
 
-    // 4. Adjuntar información del usuario al request para uso en controladores
-    req.user = {
-      type: 'guest',
-      table_id: decoded.table_id,
-      customer_name: decoded.customer_name,
-      customer_dni: decoded.customer_dni,
+    if (currentClient.status !== 'ACTIVE') {
+      return res.status(403).json({
+        error: 'Sesión finalizada',
+        message: 'Tu sesión en esta mesa ya ha sido cerrada. Por favor escanea el QR nuevamente.'
+      });
+    }
+
+    // 5. Inyectar el usuario COMPLETO en el request
+    // Ahora tus controladores tendrán acceso al ID real de la base de datos (currentClient.id)
+    req.guest = {
+      id: currentClient.id,             // ESTO ES LO QUE NECESITABAS
+      tableId: currentClient.tableId,
+      name: currentClient.customerName,
+      dni: currentClient.customerDni,
+      role: 'guest',
       token: token
     };
 
     next();
+
   } catch (error) {
-    console.error('Error en verifyGuest:', error);
+    console.error('Error crítico en verifyGuest:', error);
     return res.status(500).json({
-      error: 'Error interno del servidor',
-      message: 'Ocurrió un error al verificar la autenticación.'
+      error: 'Error interno',
+      message: 'No se pudo verificar la sesión del invitado.'
     });
   }
 };
 
 /**
- * Middleware para verificar permisos de Staff/Admin
- * Valida que el usuario tenga los permisos necesarios usando el protocolo de seguridad
- * 
- * @param {Object} req - Request object de Express
- * @param {Object} res - Response object de Express
- * @param {Function} next - Next middleware function
- * @param {Object} options - Opciones de validación: { resource, method }
+ * Middleware para proteger endpoints según el Manual de Seguridad.
+ * Utiliza la "Versión Mejorada: Forma Automática" descrita en la sección 4.1 del manual.
+ * * @param {string} resource - Nombre del recurso según convención (ej: 'Table_atc')
+ * @param {string} method - Acción a validar ('Create', 'Read', 'Update', 'Delete')
  */
-export const verifyStaff = (options = {}) => {
+export const verifyStaff = (resource, method) => {
   return async (req, res, next) => {
     try {
-      // 1. Extraer el token del header Authorization
+      // 1. Intercepción del Token [cite: 71]
       const authHeader = req.headers.authorization;
       
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({
           error: 'No autorizado',
-          message: 'Token de autenticación no proporcionado. Formato esperado: Bearer <token>'
+          message: 'Token de autenticación no proporcionado.'
         });
       }
 
-      const token = authHeader.substring(7); // Remover "Bearer "
+      const token = authHeader.substring(7);
 
-      // 2. Decodificar y verificar el token usando JWT_SECRET
+      // 2. Decodificación Local Básica [cite: 72]
       let decoded;
       try {
         decoded = jwt.verify(token, envs.JWT_SECRET);
       } catch (error) {
-        if (error.name === 'TokenExpiredError') {
-          return res.status(401).json({
-            error: 'Token expirado',
-            message: 'El token de sesión ha expirado. Por favor, inicia sesión nuevamente.'
-          });
-        }
-        if (error.name === 'JsonWebTokenError') {
-          return res.status(401).json({
-            error: 'Token inválido',
-            message: 'El token proporcionado no es válido.'
-          });
-        }
-        throw error;
+        return res.status(401).json({ 
+            error: 'Token inválido', 
+            message: 'Su sesión ha expirado o es inválida.' 
+        });
       }
 
-      // 3. Verificar si el usuario es administrador
+      // 3. Verificar si es Administrador
+      // Si es admin, tiene pase libre y no consultamos al MS de Seguridad.
       if (decoded.isAdmin === true) {
-        // Usuario administrador: acceso completo
-        req.user = {
-          type: 'admin',
-          id: decoded.id,
-          name: decoded.name,
-          lastName: decoded.lastName,
-          email: decoded.email,
-          isAdmin: true,
-          token: token
-        };
+        req.user = { ...decoded, type: 'admin', token };
         return next();
       }
 
-      // 4. Si no es admin, verificar permisos usando el módulo de seguridad
-      // Si se proporcionaron opciones (resource y method), usar validación automática
-      if (options.resource && options.method) {
-        const hasPermission = await checkPermissionViaSecurityModule(
-          token,
-          options.resource,
-          options.method
-        );
-
-        if (!hasPermission) {
-          return res.status(403).json({
-            error: 'Permisos insuficientes',
-            message: 'No tiene permisos para realizar esta acción.'
-          });
-        }
-      } else {
-        // Si no se proporcionaron opciones, solo verificar que tenga roles (staff básico)
-        if (!decoded.roles || !Array.isArray(decoded.roles) || decoded.roles.length === 0) {
-          return res.status(403).json({
-            error: 'Permisos insuficientes',
-            message: 'El usuario no tiene roles asignados.'
-          });
-        }
+      // Validación de integridad: El manual exige validar resource y method 
+      if (!resource || !method) {
+        console.error('❌ Error de implementación: verifyStaff llamado sin resource o method');
+        return res.status(500).json({ error: 'Error de configuración de seguridad en el servidor.' });
       }
 
-      // 5. Adjuntar información del usuario al request
-      req.user = {
-        type: 'staff',
-        id: decoded.id,
-        name: decoded.name,
-        lastName: decoded.lastName,
-        email: decoded.email,
-        isAdmin: false,
-        roles: decoded.roles || [],
-        token: token
-      };
+      // 4. Validación Delegada (S2S) al Módulo de Seguridad [cite: 101]
+      const hasPermission = await checkPermissionViaSecurityModule(token, resource, method);
 
+      if (!hasPermission) {
+        // [cite: 131] Si hasPermission es false, responder 403.
+        return res.status(403).json({
+          error: 'Acceso Denegado',
+          message: 'No tiene permisos para realizar esta acción sobre este recurso.'
+        });
+      }
+
+      // 5. Adjuntar usuario y continuar
+      req.user = { ...decoded, type: 'staff', token };
       next();
+
     } catch (error) {
-      console.error('Error en verifyStaff:', error);
+      console.error('🔥 Error crítico en verifyStaff:', error);
       return res.status(500).json({
-        error: 'Error interno del servidor',
-        message: 'Ocurrió un error al verificar la autenticación.'
+        error: 'Error interno',
+        message: 'No se pudo verificar la autorización con el servicio de seguridad.'
       });
     }
   };
 };
 
 /**
- * Función auxiliar para verificar permisos usando el endpoint hasPermission del módulo de seguridad
- * Implementa la "Versión Mejorada" del protocolo de seguridad
- * 
- * @param {string} token - Token JWT del usuario
- * @param {string} resource - Recurso a verificar (ej: "Table_atc", "Comanda_atc")
- * @param {string} method - Método a verificar (Create, Read, Update, Delete, All)
- * @returns {Promise<boolean>} true si tiene permiso, false en caso contrario
+ * Consulta el endpoint /hasPermission del Módulo de Seguridad.
+ * Documentación: Sección 4.1, Paso 2 (Versión Mejorada) [cite: 100-105]
  */
 async function checkPermissionViaSecurityModule(token, resource, method) {
   const securityUrl = envs.CHARLOTTE_SECURITY_URL;
 
   if (!securityUrl) {
-    console.error('CHARLOTTE_SECURITY_URL no está configurada en variables de entorno');
-    throw new Error('Servicio de seguridad no configurado');
+    throw new Error('CHARLOTTE_SECURITY_URL no está configurada.');
   }
 
   try {
-    // Realizar petición POST al endpoint hasPermission del módulo de seguridad
+    // Petición HTTP POST 
     const response = await fetch(`${securityUrl}/api/seguridad/auth/hasPermission`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}` // [cite: 106]
       },
       body: JSON.stringify({
-        resource: resource,
-        method: method
+        resource: resource, // Ej: "Comanda_atc" [cite: 116]
+        method: method      // Ej: "Create" [cite: 117]
       })
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error al verificar permisos con módulo de seguridad: ${response.status} - ${errorText}`);
-      
-      // Si el servicio de seguridad no está disponible, denegar acceso por seguridad
-      return false;
+      console.warn(`⚠️ Seguridad respondió status ${response.status}`);
+      return false; // Ante la duda, denegar.
     }
 
     const data = await response.json();
     
-    // El módulo de seguridad responde con { hasPermission: true/false }
+    // El endpoint responde: { "hasPermission": true } [cite: 129]
     return data.hasPermission === true;
 
   } catch (error) {
-    console.error('Error comunicando con Módulo de Seguridad:', error);
-    // En caso de error, denegar acceso por seguridad
-    return false;
-  }
-}
-
-/**
- * Función auxiliar para verificar permisos de forma manual
- * Implementa la "Forma Manual" del protocolo de seguridad
- * Útil cuando se necesita más control sobre la validación
- * 
- * @param {string} token - Token JWT del usuario
- * @param {string} resource - Recurso a verificar (ej: "Table_atc", "Comanda_atc")
- * @param {string} method - Método a verificar (Create, Read, Update, Delete, All)
- * @returns {Promise<boolean>} true si tiene permiso, false en caso contrario
- */
-export async function checkPermissionManual(token, resource, method) {
-  const securityUrl = envs.CHARLOTTE_SECURITY_URL;
-
-  if (!securityUrl) {
-    console.error('CHARLOTTE_SECURITY_URL no está configurada en variables de entorno');
-    throw new Error('Servicio de seguridad no configurado');
-  }
-
-  try {
-    // 1. Decodificar el token para obtener los roles
-    const decoded = jwt.verify(token, envs.JWT_SECRET);
-    
-    if (decoded.isAdmin === true) {
-      return true; // Admin tiene acceso completo
-    }
-
-    if (!decoded.roles || !Array.isArray(decoded.roles) || decoded.roles.length === 0) {
-      return false;
-    }
-
-    // 2. Consultar los roles al módulo de seguridad
-    const response = await fetch(`${securityUrl}/api/seguridad/auth/rol`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        roles: decoded.roles
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error al obtener roles del módulo de seguridad: ${response.status} - ${errorText}`);
-      return false;
-    }
-
-    const roles = await response.json();
-
-    // 3. Iterar sobre los roles y buscar el permiso correspondiente
-    for (const role of roles) {
-      if (!role.permissions || !Array.isArray(role.permissions)) {
-        continue;
-      }
-
-      for (const permission of role.permissions) {
-        // Verificar que el permiso coincida con el recurso y método solicitados
-        if (
-          permission.type === 'Resource' &&
-          permission.resource === resource &&
-          (permission.method === method || permission.method === 'All')
-        ) {
-          return true; // Permiso encontrado
-        }
-      }
-    }
-
-    return false; // No se encontró el permiso necesario
-
-  } catch (error) {
-    console.error('Error en verificación manual de permisos:', error);
-    return false;
+    console.error('❌ Error comunicando con Módulo de Seguridad:', error.message);
+    return false; // Fail-safe: si el microservicio cae, nadie pasa (excepto admins locales).
   }
 }
 

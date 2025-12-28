@@ -199,8 +199,8 @@ export const OrderService = {
     }
 
     // 2. MODO PRODUCCIÓN (Fetch Real)
-    const kitchenUrl = envs.KITCHEN_URL;
-    if (!kitchenUrl) return;
+    const kitchenUrl = envs.CHARLOTTE_COCINA_URL;
+    if (!kitchenUrl) return console.warn("[KDS Warning] Variable CHARLOTTE_COCINA_URL no definida en producción.");
 
     try {
       const response = await fetch(`${kitchenUrl}/api/kitchen/kds/order/${externalOrderId}/cancel`, {

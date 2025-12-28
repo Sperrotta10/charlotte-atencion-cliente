@@ -4,61 +4,61 @@ import jwt from 'jsonwebtoken';
 
 /**
  * Solicita o Genera un token JWT.
- * LÓGICA HÍBRIDA:
- * - Desarrollo: Genera un JWT real firmado localmente (sin depender del servicio externo).
- * - Producción: Realiza la petición HTTP al módulo de seguridad para una firma centralizada.
- * * @param {Object} payload - Datos para incluir en el token
+ * @param {Object} payload - Datos para incluir en el token
  * @returns {Promise<string>} Token JWT válido
+ * @throws {Error} Si el módulo de seguridad rechaza la solicitud
  */
 const requestJwtToken = async (payload) => {
-  // 1. MODO DESARROLLO (Generación Local Real)
+  // 1. MODO DESARROLLO (Bypass)
   if (envs.NODE_ENV === 'development') {
-    console.log('🚧 [DEV MODE] Generando JWT localmente (Bypass de Seguridad)...');
-    
-    // Usamos una clave secreta de desarrollo.
-    // NOTA: Asegúrate de que tu middleware de auth use esta misma clave en modo dev.
+    console.log('🚧 [DEV MODE] Generando JWT localmente...');
     const secret = envs.JWT_SECRET || 'charlotte-dev-secret-key-123';
-    
-    // Firmamos el token realmente. Esto crea un string "eyJ..." válido y decodificable.
-    const token = jwt.sign(payload, secret, {
-        expiresIn: '4h', // Duración típica de una cena
+    return jwt.sign(payload, secret, {
+        expiresIn: '4h',
         algorithm: 'HS256'
     });
-
-    return token;
   }
 
-  // 2. MODO PRODUCCIÓN (Petición al Microservicio)
+  // 2. MODO PRODUCCIÓN (Request S2S)
   const securityUrl = envs.CHARLOTTE_SECURITY_URL;
-  
-  if (!securityUrl) {
-    throw new Error('CHARLOTTE_SECURITY_URL no está configurada en variables de entorno');
-  }
+  if (!securityUrl) throw new Error('CHARLOTTE_SECURITY_URL no configurada');
 
   try {
+
     const response = await fetch(`${securityUrl}/api/seguridad/auth/clientSession`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // 'x-service-key': envs.SERVICE_KEY // Si se requiere en el futuro
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
+    // 3. MANEJO DE ERRORES DEL MÓDULO DE SEGURIDAD
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error S2S Seguridad: ${response.status} - ${errorText}`);
-      throw new Error('El servicio de seguridad rechazó la solicitud de token');
+      // Leemos el JSON de error que nos manda Seguridad
+      const errorData = await response.json(); 
+      
+      // Logueamos para nosotros (los devs)
+      console.error(`❌ Seguridad rechazó token: ${response.status} - ${errorData.message}`);
+      
+      // Lanzamos un error con el mensaje EXACTO de Seguridad para mostrárselo al cliente
+      // Ej: "customer_dni debe ser una cédula válida..."
+      const error = new Error(errorData.message || 'Error de validación en seguridad');
+      error.code = 'SECURITY_MODULE_REJECTION';
+      error.statusCode = response.status; // Guardamos el status (400, 403, etc)
+      throw error;
     }
 
+    // 4. ÉXITO
     const data = await response.json();
-    
-    // Soporte para diferentes estructuras de respuesta del módulo de seguridad
-    return data.token || data.session_token || data.access_token;
+    return data.token; // El controller de seguridad retorna { token: "..." }
 
   } catch (error) {
-    console.error('Error crítico comunicando con Módulo de Seguridad:', error);
-    // En producción no podemos "inventar" un token, debemos fallar si seguridad no responde.
+    // Si el error ya tiene código (lo lanzamos nosotros arriba), lo dejamos pasar
+    if (error.code === 'SECURITY_MODULE_REJECTION') {
+        throw error;
+    }
+
+    // Si es un error de red (fetch falló), lanzamos error genérico
+    console.error('🔥 Error crítico comunicando con Módulo de Seguridad:', error);
     throw new Error('Servicio de autenticación no disponible temporalmente');
   }
 };
@@ -91,7 +91,8 @@ export const createSession = async ({ table_id, customer_name, customer_dni }) =
   const jwtPayload = {
     table_id,
     customer_name,
-    customer_dni
+    customer_dni,
+    role: 'GUEST'
   };
 
   const sessionToken = await requestJwtToken(jwtPayload);

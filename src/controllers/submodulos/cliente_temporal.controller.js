@@ -47,6 +47,14 @@ export const createSession = async (req, res) => {
       return res.status(403).json({ error: error.message });
     }
 
+    // Error de validación del Módulo de Seguridad (Ej: DNI malo)
+    if (error.code === 'SECURITY_MODULE_REJECTION') {
+        return res.status(error.statusCode || 400).json({
+            error: 'Error de Validación',
+            message: error.message
+        });
+    }
+
     console.error('Error creando sesión:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }

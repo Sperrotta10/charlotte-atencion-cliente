@@ -13,7 +13,7 @@ export const createOrderSchema = z.object({
   items: z.array(
     z.object({
       // REQUISITO: Input en snake_case
-      product_id: z.number().int().positive({ message: "product_id es requerido" }),
+      product_id: z.string().uuid({ message: "El ID del producto debe ser un UUID válido" }),
       
       quantity: z.number().int().positive(),
       

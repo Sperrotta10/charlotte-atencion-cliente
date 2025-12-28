@@ -1,36 +1,33 @@
 import { prisma } from "../../src/db/client.js";
+import { randomUUID } from 'node:crypto'; // Módulo nativo de Node.js
 
 export const seedTables = async () => {
     console.log('🪑 Sembrando Mesas (Tables)...');
 
     const totalTables = 20;
 
-    // Bucle para crear las 20 mesas
     for (let i = 1; i <= totalTables; i++) {
-        
-        // Lógica simple para variar la capacidad:
-        // Mesas 1-5:  Para parejas (2 personas)
-        // Mesas 6-15: Estándar (4 personas)
-        // Mesas 16-20: Familiares (8 personas)
+        // Lógica de capacidad
         let capacity = 4;
         if (i <= 5) capacity = 2;
         else if (i >= 16) capacity = 8;
 
         await prisma.table.upsert({
-            // Usamos el QR como identificador único para saber si ya existe
-            where: { qrUuid: `qr-mesa-${i}` }, 
+            // USAMOS tableNumber COMO IDENTIFICADOR ESTABLE
+            where: { tableNumber: i }, 
             
             update: {
-                // Opcional: Si cambias la capacidad en el código, 
-                // esto actualizará la DB si la mesa ya existía.
-                capacity: capacity 
+                // Si la mesa existe, solo actualizamos capacidad si cambió
+                capacity: capacity
+                // No actualizamos qrUuid para no invalidar QRs impresos en la vida real
             },
             
             create: {
                 tableNumber: i,
-                qrUuid: `qr-mesa-${i}`, // Generamos un UUID simulado
+                // AQUÍ GENERAMOS EL UUID REAL
+                qrUuid: randomUUID(), 
                 capacity: capacity,
-                currentStatus: 'AVAILABLE' // Estado inicial por defecto
+                currentStatus: 'AVAILABLE'
             }
         });
     }

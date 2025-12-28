@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
  * @returns {Promise<string>} Token JWT válido
  * @throws {Error} Si el módulo de seguridad rechaza la solicitud
  */
-const requestJwtToken = async (payload) => {
+export const requestJwtToken = async (payload) => {
   // 1. MODO DESARROLLO (Bypass)
   if (envs.NODE_ENV === 'development') {
     console.log('🚧 [DEV MODE] Generando JWT localmente...');

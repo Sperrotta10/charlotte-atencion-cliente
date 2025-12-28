@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import * as clienteTemporalController from '../../controllers/submodulos/cliente_temporal.controller.js';
+import { verifyOwnerOrStaff } from '../../middlewares/auth.js';
 
 const router = Router();
 
-// GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI)
-router.get('/', clienteTemporalController.getClients);
+// GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI) (PROTEGIDO: Owner/Staff)
+router.get('/', verifyOwnerOrStaff('ClienteTemporal_atc', 'Read'), clienteTemporalController.getClients);
 
 // POST /clients - Crear Sesión (Login)
 router.post('/', clienteTemporalController.createSession);

@@ -150,6 +150,133 @@ export const verifyStaff = (resource, method) => {
 };
 
 /**
+ * Middleware para proteger endpoints que solo pueden ser accedidos por Administradores.
+ * 
+ * @param {Object} req - Request object de Express
+ * @param {Object} res - Response object de Express
+ * @param {Function} next - Next middleware function
+ */
+export const verifyAdmin = async (req, res, next) => {
+  try {
+    // 1. Intercepción del Token
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'No autorizado',
+        message: 'Token de autenticación no proporcionado.'
+      });
+    }
+
+    const token = authHeader.substring(7);
+
+    // 2. Decodificación Local Básica
+    let decoded;
+    try {
+      decoded = jwt.verify(token, envs.JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({ 
+        error: 'Token inválido', 
+        message: 'Su sesión ha expirado o es inválida.' 
+      });
+    }
+
+    // 3. Verificar que sea Administrador
+    if (decoded.isAdmin !== true) {
+      return res.status(403).json({
+        error: 'Acceso Denegado',
+        message: 'Este endpoint solo puede ser accedido por administradores.'
+      });
+    }
+
+    // 4. Adjuntar usuario y continuar
+    req.user = { ...decoded, type: 'admin', token };
+    next();
+
+  } catch (error) {
+    console.error(' Error crítico en verifyAdmin:', error);
+    return res.status(500).json({
+      error: 'Error interno',
+      message: 'No se pudo verificar la autorización.'
+    });
+  }
+};
+
+/**
+ * Middleware para proteger endpoints que pueden ser accedidos por Owner o Staff.
+ * Permite acceso a Administradores, Owner y Staff con permisos adecuados.
+ * 
+ * @param {string} resource - Nombre del recurso según convención (ej: 'ClienteTemporal_atc')
+ * @param {string} method - Acción a validar ('Read', 'Create', 'Update', 'Delete')
+ */
+export const verifyOwnerOrStaff = (resource, method) => {
+  return async (req, res, next) => {
+    try {
+      // 1. Intercepción del Token
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          error: 'No autorizado',
+          message: 'Token de autenticación no proporcionado.'
+        });
+      }
+
+      const token = authHeader.substring(7);
+
+      // 2. Decodificación Local Básica
+      let decoded;
+      try {
+        decoded = jwt.verify(token, envs.JWT_SECRET);
+      } catch (error) {
+        return res.status(401).json({ 
+          error: 'Token inválido', 
+          message: 'Su sesión ha expirado o es inválida.' 
+        });
+      }
+
+      // 3. Verificar si es Administrador (Admin tiene acceso completo)
+      if (decoded.isAdmin === true) {
+        req.user = { ...decoded, type: 'admin', token };
+        return next();
+      }
+
+      // 4. Validar que se proporcionen resource y method
+      if (!resource || !method) {
+        console.error(' Error de implementación: verifyOwnerOrStaff llamado sin resource o method');
+        return res.status(500).json({ 
+          error: 'Error de configuración de seguridad en el servidor.' 
+        });
+      }
+
+      // 5. Verificar si es Owner (puede tener un campo específico o rol)
+      // Por ahora, verificamos permisos a través del módulo de seguridad
+      // que debería manejar tanto Owner como Staff
+      const hasPermission = await checkPermissionViaSecurityModule(token, resource, method);
+
+      if (!hasPermission) {
+        return res.status(403).json({
+          error: 'Acceso Denegado',
+          message: 'No tiene permisos para realizar esta acción. Se requiere rol Owner o Staff.'
+        });
+      }
+
+      // 6. Adjuntar usuario y continuar
+      // El tipo puede ser 'owner' o 'staff' dependiendo del token
+      req.user = { ...decoded, type: decoded.isOwner ? 'owner' : 'staff', token };
+      next();
+
+    } catch (error) {
+      console.error(' Error crítico en verifyOwnerOrStaff:', error);
+      return res.status(500).json({
+        error: 'Error interno',
+        message: 'No se pudo verificar la autorización con el servicio de seguridad.'
+      });
+    }
+  };
+};
+
+/**
  * Consulta el endpoint /hasPermission del Módulo de Seguridad.
  * Documentación: Sección 4.1, Paso 2 (Versión Mejorada) [cite: 100-105]
  */

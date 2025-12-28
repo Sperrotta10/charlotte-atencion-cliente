@@ -98,7 +98,7 @@ model ClienteTemporal {
 }
 
 model Comanda {
-  id          Int         @id @default(autoincrement())  
+  id          String         @id @default(uuid())  
   clienteId   Int         @map("cliente_id")
   cliente     ClienteTemporal @relation(fields: [clienteId], references: [id], onDelete: Cascade)
   status      OrderStatus @default(PENDING)
@@ -114,8 +114,8 @@ model Comanda {
 }
 
 model OrderItem {
-  id                  Int     @id @default(autoincrement())
-  comandaId           Int     @map("comanda_id")
+  id                  String     @id @default(uuid())
+  comandaId           String     @map("comanda_id")
   comanda             Comanda @relation(fields: [comandaId], references: [id], onDelete: Cascade)
   productId           Int     @map("product_id")
   quantity            Int
@@ -127,7 +127,7 @@ model OrderItem {
 }
 
 model ServiceRequest {
-  id         Int           @id @default(autoincrement())
+  id         String           @id @default(uuid())
   clienteId  Int           @map("cliente_id")
   cliente    ClienteTemporal @relation(fields: [clienteId], references: [id], onDelete: Cascade)
   type       ServiceType

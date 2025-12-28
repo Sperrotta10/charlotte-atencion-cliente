@@ -21,8 +21,11 @@ export const createSessionSchema = z.object({
       required_error: 'El customer_dni es requerido',
       invalid_type_error: 'El customer_dni debe ser un string',
     })
-    .min(6, { message: 'El customer_dni no puede estar vacío' })
-    .max(8, { message: 'El customer_dni no puede exceder 8 caracteres' }),
+    .trim()
+    .regex(/^(?:[VEJP]-?)?\d{6,8}$/i, {
+      message: 'La cédula debe tener entre 6 y 8 números (ej: V-12345678 o 12345678)',
+    })
+    .transform((val) => val.toUpperCase()),
 });
 
 // Esquema de validación para el parámetro ID en la ruta

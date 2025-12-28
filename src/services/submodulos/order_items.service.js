@@ -93,10 +93,10 @@ export const OrderService = {
     }
 
     // 3. PRODUCCIÓN (Fetch Real)
-    const kitchenUrl = envs.KITCHEN_URL; // Asegúrate de tener esto en tu .env
+    const kitchenUrl = envs.CHARLOTTE_COCINA_URL; // Asegúrate de tener esto en tu .env
     
     if (!kitchenUrl) {
-      console.warn("[KDS Warning] Variable KITCHEN_URL no definida en producción.");
+      console.warn("[KDS Warning] Variable CHARLOTTE_COCINA_URL no definida en producción.");
       return;
     }
 
@@ -110,8 +110,13 @@ export const OrderService = {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Cocina respondió ${response.status}: ${errorText}`);
+      const errorData = await response.json();
+      console.error(`[KDS Error] Cocina respondió error: ${response.status} - ${errorData.message || 'Sin mensaje'}`);
+
+      const error = new Error(`Fallo al notificar a cocina: ${errorData.message || 'Error desconocido'}`);
+      error.code = 'KDS_NOTIFICATION_FAILED';
+      error.status = response.status;
+      throw error;
     }
 
     const responseData = await response.json();

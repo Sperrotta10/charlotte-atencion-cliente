@@ -31,6 +31,10 @@ export const createOrder = async (req, res) => {
       return res.status(409).json({ success: false, message: error.message });
     }
 
+    if (error.code === 'KDS_NOTIFICATION_FAILED') {
+      return res.status(error.status || 502).json({ success: false, message: error.message });
+    }
+
     res.status(500).json({ success: false, message: 'Error interno', error: error.message });
   }
 };

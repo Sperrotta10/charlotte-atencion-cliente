@@ -312,7 +312,7 @@ async function checkPermissionViaSecurityModule(token, resource, method) {
     return data.hasPermission === true;
 
   } catch (error) {
-    console.error('❌ Error comunicando con Módulo de Seguridad:', error.message);
+    console.error(' Error comunicando con Módulo de Seguridad:', error.message);
     return false; // Fail-safe: si el microservicio cae, nadie pasa (excepto admins locales).
   }
 }

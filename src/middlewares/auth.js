@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { envs } from '../config/envs.js';
-import { prisma } from '../config/prisma.js';
+import { prisma } from '../db/client.js';
 
 /**
  * Middleware para verificar tokens de cliente (Guest/Cliente Temporal)

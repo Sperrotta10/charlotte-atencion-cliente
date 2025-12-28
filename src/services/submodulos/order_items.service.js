@@ -129,7 +129,7 @@ export const OrderService = {
   updateStatus: async (id, status) => {
     // 1. Obtener estado actual para validar reglas de negocio
     const currentOrder = await prisma.comanda.findUnique({
-      where: { id: Number(id) },
+      where: { id },
       select: { status: true }
     });
 
@@ -159,7 +159,7 @@ export const OrderService = {
 
     // A. ACTUALIZACIÓN EN DB (Tu Módulo)
     const updatedOrder = await prisma.comanda.update({
-      where: { id: Number(id) },
+      where: { id },
       data: dataToUpdate,
       include: { items: true, cliente: true } 
     });
@@ -226,7 +226,7 @@ export const OrderService = {
   // ---------------------------------------------------------
   findById: async (id) => {
     return await prisma.comanda.findUnique({
-      where: { id: Number(id) },
+      where: { id },
       include: { items: true, cliente: true }
     });
   },

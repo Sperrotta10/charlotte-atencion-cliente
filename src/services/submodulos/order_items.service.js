@@ -69,13 +69,13 @@ export const OrderService = {
     // 1. Preparar el Payload EXACTO que pide Cocina
     console.log("[KDS] Preparando payload para cocina...", comanda);
     const kdsPayload = {
-      external_order_id: comanda.id, // Tu ID de comanda
-      source_module: "AC_MODULE",    // Atención al Cliente
-      service_mode: "DINE_IN",       // Comer en sitio
-      display_label: `Mesa ${comanda.cliente.table.tableNumber}`, // Ej: Mesa 5
-      customer_name: comanda.cliente.customerName,
+      externalOrderId: String(comanda.id), 
+      sourceModule: "AC_MODULE",           
+      serviceMode: "DINE_IN",             
+      displayLabel: `Mesa ${comanda.cliente.table.tableNumber}`,
+      customerName: comanda.cliente.customerName,
       items: comanda.items.map(item => ({
-        product_id: item.productId, // ID del producto (debe coincidir entre módulos)
+        productId: String(item.productId),
         quantity: item.quantity,
         notes: item.specialInstructions || ""
       }))

@@ -75,7 +75,7 @@ export const OrderService = {
       displayLabel: `Mesa ${comanda.cliente.table.tableNumber}`,
       customerName: comanda.cliente.customerName,
       items: comanda.items.map(item => ({
-        productId: String(item.productId),
+        productId: item.productId,
         quantity: item.quantity,
         notes: item.specialInstructions || ""
       }))

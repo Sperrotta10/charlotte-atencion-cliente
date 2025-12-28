@@ -117,7 +117,7 @@ model OrderItem {
   id                  String     @id @default(uuid())
   comandaId           String     @map("comanda_id")
   comanda             Comanda @relation(fields: [comandaId], references: [id], onDelete: Cascade)
-  productId           Int     @map("product_id")
+  productId           String     @map("product_id")
   quantity            Int
   unitPrice           Float   @map("unit_price")
   specialInstructions String? @map("special_instructions")

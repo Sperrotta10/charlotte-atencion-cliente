@@ -38,14 +38,14 @@ export const seedComandas = async (clients) => {
                         create: [
                             {
                                 // CORRECCIÓN: Usamos UUID String del Mock
-                                productId: MOCK_MENU.HAMBURGUESA, 
+                                productId: MOCK_MENU.Hamburguesa_Royal, 
                                 quantity: 2,
                                 unitPrice: 12.50,
                                 specialInstructions: "Bien cocido"
                             },
                             {
                                 // CORRECCIÓN: Usamos UUID String del Mock
-                                productId: MOCK_MENU.REFRESCO,
+                                productId: MOCK_MENU.Hamburguesa_Clásica,
                                 quantity: 1,
                                 unitPrice: 5.00,
                                 specialInstructions: "Con mucho hielo"

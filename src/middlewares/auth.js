@@ -1,15 +1,98 @@
 import jwt from 'jsonwebtoken';
 import { envs } from '../config/envs.js';
-import { prisma } from '../db/client.js';
 
-/**
- * Middleware para verificar tokens de cliente (Guest/Cliente Temporal)
- * Valida que el token JWT sea válido y contenga información de cliente temporal
- * 
- * @param {Object} req - Request object de Express
- * @param {Object} res - Response object de Express
- * @param {Function} next - Next middleware function
- */
+export const verifyGuestOrStaff = (resource, action) => {
+  return async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+    const token = authHeader.substring(7);
+
+    try {
+      // PASO 1: Intentar validar como GUEST (Base de Datos Local)
+      // Decodificamos primero para ver si tiene estructura de guest antes de pegar a la BD
+      const decoded = jwt.verify(token, envs.JWT_SECRET);
+      
+      // Buscamos en BD Local
+      const guest = await prisma.clienteTemporal.findUnique({
+        where: { sessionToken: token }
+      });
+
+      if (guest && guest.status === 'ACTIVE') {
+        // ✅ ES UN GUEST: Lo inyectamos y pasamos
+        req.guest = {
+          id: guest.id,
+          tableId: guest.tableId,
+          name: guest.customerName,
+          dni: guest.customerDni,
+          role: 'guest'
+        };
+        req.userType = 'GUEST'; // Flag para el controlador
+        return next();
+      }
+
+      // PASO 2: Si no es Guest, intentamos validar como STAFF (Microservicio)
+      // Reutilizamos la lógica de verifyStaff pero encapsulada
+      // Nota: Llamamos a tu función verifyStaff manualmente
+      const staffMiddleware = verifyStaff(resource, action);
+      
+      // Ejecutamos el middleware de staff "manualmente"
+      // Si pasa, next() se llamará dentro de verifyStaff.
+      // Si falla, verifyStaff responderá el error.
+      staffMiddleware(req, res, (err) => {
+        if (err) return next(err);
+        req.userType = 'STAFF'; // Flag para el controlador
+        next();
+      });
+
+    } catch (error) {
+        // Si el token es inválido para ambos
+        return res.status(401).json({ error: 'Token inválido o sesión expirada' });
+    }
+  };
+};
+
+
+
+export const ensureOwnership = (model) => {
+  return async (req, res, next) => {
+    // 1. Si es STAFF, tiene acceso VIP (pase directo)
+    if (req.userType === 'STAFF') {
+      return next(); 
+    }
+
+    // 2. Si es GUEST, verificamos propiedad
+    if (req.userType === 'GUEST') {
+      const resourceId = req.params.id; // Asumimos que el ID viene en la URL
+      
+      // Buscamos el recurso para ver de quién es
+      // Usamos prisma[model] dinámicamente
+      const resource = await prisma[model].findUnique({
+        where: { id: resourceId }, // Ojo: Si usas UUID asegúrate que resourceId sea string
+        select: { clienteId: true }
+      });
+
+      if (!resource) {
+        return res.status(404).json({ error: 'Recurso no encontrado' });
+      }
+
+      // LA COMPARACIÓN CLAVE 🔐
+      if (resource.clienteId !== req.guest.id) {
+        return res.status(403).json({ 
+          error: 'Acceso Prohibido', 
+          message: 'No puedes acceder a datos que no te pertenecen.' 
+        });
+      }
+
+      return next();
+    }
+
+    return res.status(401).json({ error: 'Identidad desconocida' });
+  };
+};
+
+
 export const verifyGuest = async (req, res, next) => {
   try {
     // 1. Extracción del token
@@ -80,12 +163,7 @@ export const verifyGuest = async (req, res, next) => {
   }
 };
 
-/**
- * Middleware para proteger endpoints según el Manual de Seguridad.
- * Utiliza la "Versión Mejorada: Forma Automática" descrita en la sección 4.1 del manual.
- * * @param {string} resource - Nombre del recurso según convención (ej: 'Table_atc')
- * @param {string} method - Acción a validar ('Create', 'Read', 'Update', 'Delete')
- */
+
 export const verifyStaff = (resource, method) => {
   return async (req, res, next) => {
     try {
@@ -150,6 +228,7 @@ export const verifyStaff = (resource, method) => {
   };
 };
 
+
 /**
  * Consulta el endpoint /hasPermission del Módulo de Seguridad.
  * Documentación: Sección 4.1, Paso 2 (Versión Mejorada) [cite: 100-105]
@@ -186,7 +265,7 @@ async function checkPermissionViaSecurityModule(token, resource, method) {
     return data.hasPermission === true;
 
   } catch (error) {
-    console.error('❌ Error comunicando con Módulo de Seguridad:', error.message);
+    console.error(' Error comunicando con Módulo de Seguridad:', error.message);
     return false; // Fail-safe: si el microservicio cae, nadie pasa (excepto admins locales).
   }
 }

@@ -20,7 +20,7 @@ export const ServiceRequestService = {
   // 3. BUSCAR POR ID (Nueva)
   findById: async (id) => {
     return await prisma.serviceRequest.findUnique({
-      where: { id: Number(id) }
+      where: { id }
     });
   },
 
@@ -28,7 +28,7 @@ export const ServiceRequestService = {
   markAsAttended: async (id, data) => {
     // 1. Buscar la solicitud actual para validar estado previo
     const currentRequest = await prisma.serviceRequest.findUnique({
-      where: { id: Number(id) }
+      where: { id }
     });
 
     if (!currentRequest) {
@@ -63,7 +63,7 @@ export const ServiceRequestService = {
 
     // 4. Ejecutar actualización en la base de datos
     const updatedRequest = await prisma.serviceRequest.update({
-      where: { id: Number(id) },
+      where: { id },
       data: updateData
     });
 

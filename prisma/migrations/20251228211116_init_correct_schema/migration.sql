@@ -75,7 +75,7 @@ CREATE TABLE "comandas" (
 CREATE TABLE "order_items" (
     "id" TEXT NOT NULL,
     "comanda_id" TEXT NOT NULL,
-    "product_id" INTEGER NOT NULL,
+    "product_id" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
     "unit_price" DOUBLE PRECISION NOT NULL,
     "special_instructions" TEXT,

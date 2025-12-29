@@ -30,7 +30,7 @@ export const seedClients = async () => {
             data: { currentStatus: 'OCCUPIED' }
         });
 
-        const data = await requestJwtToken({
+        const token = await requestJwtToken({
             table_id: table.id,
             customer_name: `Cliente Mesa ${table.tableNumber}`,
             customer_dni: `V-${Math.floor(Math.random() * 10000000)}`,
@@ -41,7 +41,7 @@ export const seedClients = async () => {
         const client = await prisma.clienteTemporal.create({
             data: {
                 tableId: table.id,
-                sessionToken: data.token, // Token de sesión simulado
+                sessionToken: token,
                 customerName: `Cliente Mesa ${table.tableNumber}`,
                 customerDni: `V-${Math.floor(Math.random() * 10000000)}`,
                 status: randomStatus,

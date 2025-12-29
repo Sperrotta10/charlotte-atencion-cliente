@@ -75,7 +75,7 @@ export const OrderService = {
       displayLabel: `Mesa ${comanda.cliente.table.tableNumber}`,
       customerName: comanda.cliente.customerName,
       items: comanda.items.map(item => ({
-        productId: String(item.productId),
+        productId: item.productId,
         quantity: item.quantity,
         notes: item.specialInstructions || ""
       }))
@@ -129,7 +129,7 @@ export const OrderService = {
   updateStatus: async (id, status) => {
     // 1. Obtener estado actual para validar reglas de negocio
     const currentOrder = await prisma.comanda.findUnique({
-      where: { id: Number(id) },
+      where: { id },
       select: { status: true }
     });
 
@@ -159,7 +159,7 @@ export const OrderService = {
 
     // A. ACTUALIZACIÓN EN DB (Tu Módulo)
     const updatedOrder = await prisma.comanda.update({
-      where: { id: Number(id) },
+      where: { id },
       data: dataToUpdate,
       include: { items: true, cliente: true } 
     });
@@ -199,8 +199,8 @@ export const OrderService = {
     }
 
     // 2. MODO PRODUCCIÓN (Fetch Real)
-    const kitchenUrl = envs.KITCHEN_URL;
-    if (!kitchenUrl) return;
+    const kitchenUrl = envs.CHARLOTTE_COCINA_URL;
+    if (!kitchenUrl) return console.warn("[KDS Warning] Variable CHARLOTTE_COCINA_URL no definida en producción.");
 
     try {
       const response = await fetch(`${kitchenUrl}/api/kitchen/kds/order/${externalOrderId}/cancel`, {
@@ -226,7 +226,7 @@ export const OrderService = {
   // ---------------------------------------------------------
   findById: async (id) => {
     return await prisma.comanda.findUnique({
-      where: { id: Number(id) },
+      where: { id },
       include: { items: true, cliente: true }
     });
   },

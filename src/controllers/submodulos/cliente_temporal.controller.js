@@ -103,13 +103,30 @@ export const updateClientStatus = async (req, res) => {
       return res.status(400).json({ errors: bodyValidation.error.format() });
     }
 
-    // 3. Llamar al servicio de negocio
+    // 3. Validar permisos según tipo de usuario
+    if (bodyValidation.data.status) {
+      if (req.userType === 'GUEST' && bodyValidation.data.status !== 'BILL_REQUESTED') {
+        return res.status(403).json({ 
+          error: 'Acceso denegado', 
+          message: 'Los invitados solo pueden solicitar la cuenta (BILL_REQUESTED)' 
+        });
+      }
+
+      if (req.userType === 'STAFF' && bodyValidation.data.status !== 'CLOSED') {
+        return res.status(403).json({ 
+          error: 'Acceso denegado', 
+          message: 'El personal solo puede cerrar sesiones (CLOSED)' 
+        });
+      }
+    }
+
+    // 4. Llamar al servicio de negocio
     const result = await clienteTemporalService.updateClientStatus(
       idValidation.data.id,
       bodyValidation.data
     );
 
-    // 4. Retornar respuesta según especificación
+    // 5. Retornar respuesta según especificación
     return res.status(200).json(result);
   } catch (error) {
     // Manejo de errores específicos

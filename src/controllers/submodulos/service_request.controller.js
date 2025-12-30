@@ -5,10 +5,12 @@ import {
   getServiceRequestsQuerySchema 
 } from '../../schemas/submodulos/service_request.schema.js';
 
-// 1. POST: Crear Solicitud
+// -------------------------------------------------------
+// 1. POST: Crear Solicitud (ACCESO: CLIENTES - GUEST)
+// -------------------------------------------------------
 export const createServiceRequest = async (req, res) => {
   try {
-    // Validación con Zod
+    // A. Validación de inputs (Body) con Zod
     const result = createServiceRequestSchema.safeParse(req.body);
 
     if (!result.success) {
@@ -19,8 +21,24 @@ export const createServiceRequest = async (req, res) => {
       });
     }
 
-    // Llamada al Service
-    const newRequest = await ServiceRequestService.create(result.data);
+    // B. SEGURIDAD: Obtener ID real del cliente desde el Token
+    // El middleware 'verifyGuest' asegura que req.guest existe.
+    if (!req.guest || !req.guest.id) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No se pudo identificar al cliente. Escanee el QR nuevamente.' 
+      });
+    }
+
+    // C. Preparar datos para el servicio (Sin hardcode)
+    // Combinamos el mensaje del usuario con el ID de su sesión
+    const dataWithClient = {
+      ...result.data,         // type, message
+      clienteId: req.guest.id // <--- DATO REAL DEL TOKEN
+    };
+
+    // D. Llamada al Service
+    const newRequest = await ServiceRequestService.create(dataWithClient);
 
     res.status(201).json({
       success: true,
@@ -37,11 +55,12 @@ export const createServiceRequest = async (req, res) => {
   }
 };
 
-// 2. GET: Listar Solicitudes con Filtros (ESTA ES LA VERSIÓN CORRECTA "ESTILO VÍCTOR")
-// Reemplaza a la antigua función simple que tenías aquí.
+// -------------------------------------------------------
+// 2. GET: Listar Solicitudes (ACCESO: STAFF)
+// -------------------------------------------------------
 export const getServiceRequests = async (req, res) => {
   try {
-    // 1. Validar Query Params con Zod (conversión a números, defaults, etc.)
+    // Validar Query Params (paginación, filtros)
     const validation = getServiceRequestsQuerySchema.safeParse(req.query);
 
     if (!validation.success) {
@@ -52,32 +71,24 @@ export const getServiceRequests = async (req, res) => {
       });
     }
 
-    // 2. Llamar al Servicio (que ahora tiene la lógica inteligente)
-    const { requests, totalItems } = await getAllServiceRequests(validation.data);
+    // Llamar a la función de búsqueda avanzada del servicio
+    const result = await getAllServiceRequests(validation.data);
 
-    // 3. Responder (Estructura JSON Final)
     res.json({
       success: true,
-      data: requests, // Ya vienen formateados en snake_case desde el servicio
-      meta: {
-        total: totalItems,
-        page: validation.data.page,
-        limit: validation.data.limit,
-        totalPages: Math.ceil(totalItems / validation.data.limit)
-      }
+      data: result.data,
+      meta: result.meta
     });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      success: false,
-      message: 'Error obteniendo solicitudes',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Error al obtener solicitudes', error: error.message });
   }
 };
 
-// 3. GET: Obtener por ID
+// -------------------------------------------------------
+// 3. GET /:id: Ver Detalle (ACCESO: STAFF)
+// -------------------------------------------------------
 export const getServiceRequestById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -96,22 +107,24 @@ export const getServiceRequestById = async (req, res) => {
   }
 };
 
-// 4. PATCH: Atender Solicitud
+// -------------------------------------------------------
+// 4. PATCH: Atender Solicitud (ACCESO: STAFF)
+// -------------------------------------------------------
 export const attendServiceRequest = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // validar el body con Zod
+    // Validar que el status sea ATTENDED
     const result = attendServiceRequestSchema.safeParse(req.body);
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: 'Datos inválidos para atender la solicitud',
+        message: 'Datos inválidos',
         errors: result.error.format()
       });
     }
     
-    // Llamada al Service para actualizar
+    // Actualizar en DB
     const updatedRequest = await ServiceRequestService.markAsAttended(id, result.data);
 
     res.json({
@@ -122,14 +135,9 @@ export const attendServiceRequest = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    // Prisma lanza un error específico si el registro no existe
     if (error.code === 'P2025') {
-        return res.status(404).json({ success: false, message: 'Solicitud no encontrada para actualizar' });
+      return res.status(404).json({ message: 'Solicitud no encontrada' });
     }
-    res.status(500).json({
-      success: false,
-      message: 'Error al actualizar la solicitud',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Error al actualizar', error: error.message });
   }
 };

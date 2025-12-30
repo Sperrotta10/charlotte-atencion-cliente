@@ -6,7 +6,7 @@ export const OrderService = {
   // ---------------------------------------------------------
   // 1. MÉTODO CREATE (Mantiene lógica KDS y Transacción)
   // ---------------------------------------------------------
-  create: async (data) => {
+  create: async (data, token) => {
     // A. TRANSACCIÓN DE BASE DE DATOS
     const newComanda = await prisma.$transaction(async (tx) => {
       
@@ -32,7 +32,7 @@ export const OrderService = {
       // 3. CREAR COMANDA E ITEMS
       return await tx.comanda.create({
         data: {
-          clienteId: activeClient.id,
+          clienteId: data.clienteId,
           status: 'PENDING',
           notes: data.notes,
           items: {
@@ -51,7 +51,7 @@ export const OrderService = {
     // B. EVENTO: NOTIFICAR AL KDS (Módulo Cocina)
     // Ejecutamos esto fuera de la transacción para no bloquear la BD si la API externa tarda
     try {
-      await OrderService.notifyKitchen(newComanda);
+      await OrderService.notifyKitchen(newComanda, token);
     } catch (error) {
       // No lanzamos error al cliente porque el pedido YA se guardó en nuestra BD.
       // Solo logueamos el fallo de comunicación. El sistema debería tener un re-try job.
@@ -65,7 +65,7 @@ export const OrderService = {
  * Función auxiliar para manejar la comunicación con Cocina
  * Aplica lógica de entorno (Dev vs Prod)
  */
-  notifyKitchen: async (comanda) => {
+  notifyKitchen: async (comanda, token) => {
     // 1. Preparar el Payload EXACTO que pide Cocina
     console.log("[KDS] Preparando payload para cocina...", comanda);
     const kdsPayload = {
@@ -104,6 +104,7 @@ export const OrderService = {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
         // 'x-api-key': envs.INTERNAL_API_KEY // Si cocina pide auth
       },
       body: JSON.stringify(kdsPayload)
@@ -126,7 +127,7 @@ export const OrderService = {
   // ---------------------------------------------------------
   // 2. MÉTODO UPDATE STATUS (Con Notificación al Cliente)
   // ---------------------------------------------------------
-  updateStatus: async (id, status) => {
+  updateStatus: async (id, status, token) => {
     // 1. Obtener estado actual para validar reglas de negocio
     const currentOrder = await prisma.comanda.findUnique({
       where: { id },
@@ -169,7 +170,7 @@ export const OrderService = {
     // Caso 1: Cancelación -> Notificar a Cocina (Detener producción)
     if (status === 'CANCELLED') {
       // Usamos fire-and-forget (await opcional dependiendo de si quieres que espere)
-      await OrderService.notifyKitchenCancellation(updatedOrder.id);
+      await OrderService.notifyKitchenCancellation(updatedOrder.id, token);
     }
 
     // Caso 2: Cambio de Estado -> Notificar al Cliente (Feedback Visual)
@@ -187,7 +188,7 @@ export const OrderService = {
  * Notifica al módulo de cocina sobre la cancelación de una orden.
  * Aplica lógica de entorno (Dev vs Prod).
  */
-  notifyKitchenCancellation: async (externalOrderId) => {
+  notifyKitchenCancellation: async (externalOrderId, token) => {
     // 1. MODO DESARROLLO (Simulación)
     if (envs.NODE_ENV === 'development') {
       console.log("---------------------------------------------------");
@@ -205,7 +206,7 @@ export const OrderService = {
     try {
       const response = await fetch(`${kitchenUrl}/api/kitchen/kds/order/${externalOrderId}/cancel`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ reason: "Cancelado por el cliente" })
       });
 

@@ -5,7 +5,7 @@ export const ServiceRequestService = {
   create: async (data) => {
     return await prisma.serviceRequest.create({
       data: {
-        clienteId: 1, // ID Hardcodeado como pediste
+        clienteId: data.clienteId, // ID 
         type: data.type,
         message: data.message
       }

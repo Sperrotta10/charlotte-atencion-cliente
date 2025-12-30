@@ -1,19 +1,20 @@
 import { Router } from 'express';
 import * as clienteTemporalController from '../../controllers/submodulos/cliente_temporal.controller.js';
+import { verifyGuestOrStaff, ensureOwnership } from '../../middlewares/auth.js';
 
 const router = Router();
 
-// GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI)
-router.get('/', clienteTemporalController.getClients);
+// GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI) (KPI/Gerente - Staff READ)
+router.get('/', verifyGuestOrStaff(), clienteTemporalController.getClients);
 
 // POST /clients - Crear Sesión (Login)
 router.post('/', clienteTemporalController.createSession);
 
-// GET /clients/:id - Obtener Cliente por id
-router.get('/:id', clienteTemporalController.getClientById);
+// GET /clients/:id - Obtener Cliente por id (Cliente Temporal o Staff con permiso READ)
+router.get('/:id', verifyGuestOrStaff(), clienteTemporalController.getClientById);
 
-// PATCH /clients/:id - Actualizar Cliente (Checkout/Status)
-router.patch('/:id', clienteTemporalController.updateClientStatus);
+// PATCH /clients/:id - Actualizar Cliente (Checkout/Status) ("Guest pide cuenta (BILL_REQUESTED), Staff cierra (CLOSED)")
+router.patch('/:id', verifyGuestOrStaff(), ensureOwnership('clienteTemporal'), clienteTemporalController.updateClientStatus);
 
 export default router;
 

@@ -13,15 +13,12 @@ const router = Router();
 router.post('/', verifyGuest, createOrder);
 
 // GET / (Listar todas) (Guest: Ve SUS comandas. Staff: Ve TODAS.)
-router.get('/', verifyGuestOrStaff('Comanda_atc', 'Read'), getAllOrders);
-// En el controlador:
-// if (req.userType === 'GUEST') where: { clienteId: req.guest.id }
-// if (req.userType === 'STAFF') where: {} (o filtros de query)
+router.get('/', verifyGuestOrStaff(), getAllOrders);
 
 // GET /:id (Ver una) (Guest: Solo si es suya. Staff: Cualquiera.)
-router.get('/:id', verifyGuestOrStaff('Comanda_atc', 'Read'), ensureOwnership('comanda'), getOrderById);
+router.get('/:id', verifyGuestOrStaff(), ensureOwnership('comanda'), getOrderById);
 
 // PATCH /:id (Actualizar estado) (Guest: Solo CANCELLED (si pending). Staff: COOKING, DELIVERED.)
-router.patch('/:id', verifyGuestOrStaff('Comanda_atc', 'Update'), ensureOwnership('comanda'), updateOrderStatus);
+router.patch('/:id', verifyGuestOrStaff(), ensureOwnership('comanda'), updateOrderStatus);
 
 export default router;

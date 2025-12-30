@@ -1,26 +1,39 @@
 import jwt from 'jsonwebtoken';
 import { envs } from '../config/envs.js';
+import { prisma } from '../db/client.js';
 
-export const verifyGuestOrStaff = (resource, action) => {
+export const verifyGuestOrStaff = () => {
   return async (req, res, next) => {
+    
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Token no proporcionado' });
     }
+
     const token = authHeader.substring(7);
 
     try {
-      // PASO 1: Intentar validar como GUEST (Base de Datos Local)
-      // Decodificamos primero para ver si tiene estructura de guest antes de pegar a la BD
-      const decoded = jwt.verify(token, envs.JWT_SECRET);
-      
-      // Buscamos en BD Local
+      // 1. Decodificar Token
+      let decoded;
+      try {
+        decoded = jwt.verify(token, envs.JWT_SECRET);
+      } catch (jwtError) {
+        // Si falla aquí, significa que no era Guest (BD) y tampoco es un JWT válido (Staff)
+        console.error('Error JWT:', jwtError.message);
+        return res.status(401).json({ 
+            error: 'Token no válido', 
+            message: 'No se encontró sesión de invitado y el token no es válido para Staff.' 
+        });
+      }
+
+      // ---------------------------------------------------
+      // CAMINO A: GUEST (Validar contra BD Local)
+      // ---------------------------------------------------
       const guest = await prisma.clienteTemporal.findUnique({
         where: { sessionToken: token }
       });
 
       if (guest && guest.status === 'ACTIVE') {
-        // ✅ ES UN GUEST: Lo inyectamos y pasamos
         req.guest = {
           id: guest.id,
           tableId: guest.tableId,
@@ -29,30 +42,34 @@ export const verifyGuestOrStaff = (resource, action) => {
           role: 'guest'
         };
         req.userType = 'GUEST'; // Flag para el controlador
-        return next();
+        return next(); // ✅ IMPORTANTE: Dejar pasar
       }
 
-      // PASO 2: Si no es Guest, intentamos validar como STAFF (Microservicio)
-      // Reutilizamos la lógica de verifyStaff pero encapsulada
-      // Nota: Llamamos a tu función verifyStaff manualmente
-      const staffMiddleware = verifyStaff(resource, action);
+      // ---------------------------------------------------
+      // CAMINO B: ADMIN
+      // ---------------------------------------------------
+      if (decoded.isAdmin === true) {
+        req.user = { ...decoded, type: 'admin', token };
+        req.userType = 'STAFF'; // Admin cuenta como Staff
+        return next(); // ✅ IMPORTANTE: Dejar pasar
+      }
+
+      // ---------------------------------------------------
+      // CAMINO C: STAFF (Resto del personal)
+      // ---------------------------------------------------
+      // Si el token es válido, no es guest y no es admin, asumimos que es Staff.
       
-      // Ejecutamos el middleware de staff "manualmente"
-      // Si pasa, next() se llamará dentro de verifyStaff.
-      // Si falla, verifyStaff responderá el error.
-      staffMiddleware(req, res, (err) => {
-        if (err) return next(err);
-        req.userType = 'STAFF'; // Flag para el controlador
-        next();
-      });
+      req.user = { ...decoded, type: 'staff', token };
+      req.userType = 'STAFF';
+      
+      return next(); // 🛑 AQUÍ ESTABA EL ERROR: Faltaba esta línea para continuar.
 
     } catch (error) {
-        // Si el token es inválido para ambos
-        return res.status(401).json({ error: 'Token inválido o sesión expirada' });
+      console.error('Error interno middleware:', error);
+      return res.status(500).json({ error: 'Error interno verificando sesión' });
     }
   };
 };
-
 
 
 export const ensureOwnership = (model) => {

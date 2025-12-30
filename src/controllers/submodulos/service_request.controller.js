@@ -72,12 +72,17 @@ export const getServiceRequests = async (req, res) => {
     }
 
     // Llamar a la función de búsqueda avanzada del servicio
-    const result = await getAllServiceRequests(validation.data);
+    const { requests, totalItems } = await getAllServiceRequests(validation.data);
 
     res.json({
       success: true,
-      data: result.data,
-      meta: result.meta
+      data: requests, // Ya vienen formateados en snake_case desde el servicio
+      meta: {
+        total: totalItems,
+        page: validation.data.page,
+        limit: validation.data.limit,
+        totalPages: Math.ceil(totalItems / validation.data.limit)
+      }
     });
 
   } catch (error) {

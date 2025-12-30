@@ -30,16 +30,18 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    const token = req.headers.authorization?.split(' ')[1];
+
     // C. INYECCIÓN DE DATOS DE SESIÓN (AJUSTE DE SEGURIDAD)
     // Sobrescribimos tableId y clienteId con los datos del token para evitar fraudes.
     const orderData = {
       ...validation.data,          // Los items y notas que envió el usuario
       tableId: req.guest.tableId,  // <--- DATO SEGURO DEL TOKEN
-      clienteId: req.guest.id      // <--- DATO SEGURO DEL TOKEN
+      clienteId: req.guest.id,      // <--- DATO SEGURO DEL TOKEN
     };
 
     // D. Ejecutar Lógica con los datos seguros
-    const result = await OrderService.create(orderData);
+    const result = await OrderService.create(orderData, token);
 
     // E. Responder
     res.status(201).json({
@@ -75,7 +77,9 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(400).json({ success: false, errors: validation.error.format() });
     }
 
-    const updatedOrder = await OrderService.updateStatus(id, validation.data.status);
+    const token = req.headers.authorization?.split(' ')[1];
+
+    const updatedOrder = await OrderService.updateStatus(id, validation.data.status, token);
     res.json({ success: true, message: 'Estado actualizado', data: updatedOrder });
 
   } catch (error) {

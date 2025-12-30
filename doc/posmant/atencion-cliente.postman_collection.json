@@ -1331,7 +1331,7 @@
 									"// Script en Tests de \"Crear Sesión\"\r",
 									"var jsonData = pm.response.json();\r",
 									"if (jsonData.session_token) {\r",
-									"    pm.environment.set(\"token_cliente\", jsonData.session_token);\r",
+									"    pm.environment.set(\"access_token\", jsonData.session_token);\r",
 									"    \r",
 									"    // Opcional: Guardar también el ID para usarlo en las URL\r",
 									"    if(jsonData.client && jsonData.client.id) {\r",
@@ -1352,7 +1352,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{ \r\n    \"table_id\": 6, \r\n    \"customer_name\": \"Marco\", \r\n    \"customer_dni\": \"12345678\" \r\n}\r\n",
+							"raw": "{ \r\n    \"table_id\": 6, \r\n    \"customer_name\": \"Santiago\", \r\n    \"customer_dni\": \"31014123\" \r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1523,7 +1523,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/2",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/11",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -1532,7 +1532,7 @@
 								"v1",
 								"atencion-cliente",
 								"clients",
-								"2"
+								"11"
 							]
 						}
 					},
@@ -1725,6 +1725,69 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"error\": \"Error interno del servidor\"\n}"
+						},
+						{
+							"name": "403 Forbidden",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients/3",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"clients",
+										"3"
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Access-Control-Allow-Credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "39"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"27-ozAhjlyDMrIU+x8IHVxOZQfs0w8\""
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 29 Dec 2025 02:02:47 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Solo puedes ver tu perfil\"\n}"
 						}
 					]
 				},
@@ -1909,7 +1972,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients?page=1&limit=20&min_amount=50",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/clients?page=1&limit=20",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -1945,7 +2008,8 @@
 								},
 								{
 									"key": "min_amount",
-									"value": "50"
+									"value": "50",
+									"disabled": true
 								}
 							]
 						}
@@ -2238,7 +2302,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"notes\": \"El cliente es alérgico al brocoli\",\r\n  \"items\": [\r\n    {\r\n      \"product_id\": 206,\r\n      \"quantity\": 2,\r\n      \"unit_price\": 12.50,\r\n      \"special_instructions\": \"Bien cocido\"\r\n    },\r\n    {\r\n      \"product_id\": 556,\r\n      \"quantity\": 1,\r\n      \"unit_price\": 3.00,\r\n      \"special_instructions\": \"Sin hielo\"\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"notes\": \"El cliente es alérgico al brocoli\",\r\n  \"items\": [\r\n    {\r\n      \"product_id\": \"d4f1aa76-bd68-417e-bde1-67fba5d03f71\",\r\n      \"quantity\": 2,\r\n      \"unit_price\": 12.50,\r\n      \"special_instructions\": \"Test conexion modulo cocina 1\"\r\n    },\r\n    {\r\n      \"product_id\": \"a5eccd9f-8b62-4ba5-ac9e-21ca43199718\",\r\n      \"quantity\": 1,\r\n      \"unit_price\": 3.00,\r\n      \"special_instructions\": \"Test conexion modulo cocina 2\"\r\n    }\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2409,7 +2473,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas?page=1&limit=10&status=PENDING&table_id=1&date_from=2025-12-22T13:03:52.534Z&date_to=2025-12-22T19:00:22.982Z",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas?page=1&limit=10",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -2430,19 +2494,23 @@
 								},
 								{
 									"key": "status",
-									"value": "PENDING"
+									"value": "PENDING",
+									"disabled": true
 								},
 								{
 									"key": "table_id",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "date_from",
-									"value": "2025-12-22T13:03:52.534Z"
+									"value": "2025-12-22T13:03:52.534Z",
+									"disabled": true
 								},
 								{
 									"key": "date_to",
-									"value": "2025-12-22T19:00:22.982Z"
+									"value": "2025-12-22T19:00:22.982Z",
+									"disabled": true
 								}
 							]
 						}
@@ -2634,7 +2702,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/3",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/d57d9a09-def6-40e9-98f9-01cf5c30deee",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -2643,7 +2711,7 @@
 								"v1",
 								"atencion-cliente",
 								"comandas",
-								"3"
+								"d57d9a09-def6-40e9-98f9-01cf5c30deee"
 							]
 						}
 					},
@@ -2854,7 +2922,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/4",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/comandas/d57d9a09-def6-40e9-98f9-01cf5c30deee",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -2863,7 +2931,7 @@
 								"v1",
 								"atencion-cliente",
 								"comandas",
-								"4"
+								"d57d9a09-def6-40e9-98f9-01cf5c30deee"
 							]
 						}
 					},
@@ -3208,7 +3276,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/3",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/e7ced8fe-1341-438b-afa6-402c7ff41b03",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -3217,7 +3285,7 @@
 								"v1",
 								"atencion-cliente",
 								"service-requests",
-								"3"
+								"e7ced8fe-1341-438b-afa6-402c7ff41b03"
 							]
 						}
 					},
@@ -3302,7 +3370,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/2",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests/5ae2e70a-a07b-4901-8d4e-42fd76a999d4",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -3311,7 +3379,7 @@
 								"v1",
 								"atencion-cliente",
 								"service-requests",
-								"2"
+								"5ae2e70a-a07b-4901-8d4e-42fd76a999d4"
 							]
 						}
 					},
@@ -3450,7 +3518,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=5&status=PENDING&table_id=1&type=COMPLAINT",
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/service-requests?page=1&limit=10",
 							"host": [
 								"{{url_cliente}}"
 							],
@@ -3467,19 +3535,22 @@
 								},
 								{
 									"key": "limit",
-									"value": "5"
+									"value": "10"
 								},
 								{
 									"key": "status",
-									"value": "PENDING"
+									"value": "PENDING",
+									"disabled": true
 								},
 								{
 									"key": "table_id",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "type",
-									"value": "COMPLAINT"
+									"value": "COMPLAINT",
+									"disabled": true
 								}
 							]
 						}
@@ -4005,8 +4076,355 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "verificar middlewares",
+			"item": [
+				{
+					"name": "verifyStaff",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/test-staff",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"test-staff"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/test-staff",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"test-staff"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sun, 28 Dec 2025 02:26:27 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "550"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "9b4d9ce69e937424-MIA"
+								},
+								{
+									"key": "access-control-allow-credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"2cf-roiO0H87U+pCR8nHuWf+3z0y4d4\""
+								},
+								{
+									"key": "rndr-id",
+									"value": "37dff0fc-c0df-48bf"
+								},
+								{
+									"key": "vary",
+									"value": "Origin"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"✅ verifyStaff funcionó correctamente\",\n    \"user\": {\n        \"id\": 1,\n        \"name\": \"Jhon\",\n        \"lastName\": \"Doe\",\n        \"email\": \"admin@charlotte.com\",\n        \"address\": null,\n        \"phone\": null,\n        \"dataType\": null,\n        \"birthDate\": \"1990-01-01\",\n        \"dni\": \"27314851\",\n        \"isAdmin\": true,\n        \"isActive\": true,\n        \"roles\": [\n            4,\n            2,\n            6\n        ],\n        \"iat\": 1766888672,\n        \"exp\": 1766975072,\n        \"type\": \"admin\",\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6Ikpob24iLCJsYXN0TmFtZSI6IkRvZSIsImVtYWlsIjoiYWRtaW5AY2hhcmxvdHRlLmNvbSIsImFkZHJlc3MiOm51bGwsInBob25lIjpudWxsLCJkYXRhVHlwZSI6bnVsbCwiYmlydGhEYXRlIjoiMTk5MC0wMS0wMSIsImRuaSI6IjI3MzE0ODUxIiwiaXNBZG1pbiI6dHJ1ZSwiaXNBY3RpdmUiOnRydWUsInJvbGVzIjpbNCwyLDZdLCJpYXQiOjE3NjY4ODg2NzIsImV4cCI6MTc2Njk3NTA3Mn0.mStIQj1l8bppd9bzyWU_FpX_xeSY3GiUMZFhtGv32g4\"\n    }\n}"
+						},
+						{
+							"name": "401 Unauthorized",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/test-staff",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"test-staff"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sun, 28 Dec 2025 02:27:20 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "72"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "9b4d9e344c407424-MIA"
+								},
+								{
+									"key": "access-control-allow-credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"4f-QOnhfLLvllvHXbxzJDkmFx9QBQw\""
+								},
+								{
+									"key": "rndr-id",
+									"value": "ca8d7d4b-c192-44bd"
+								},
+								{
+									"key": "vary",
+									"value": "Origin"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"No autorizado\",\n    \"message\": \"Token de autenticación no proporcionado.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "verifyGuest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_cliente}}/api/v1/atencion-cliente/test-guest",
+							"host": [
+								"{{url_cliente}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"atencion-cliente",
+								"test-guest"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 ok",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url_cliente}}/api/v1/atencion-cliente/test-guest",
+									"host": [
+										"{{url_cliente}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"atencion-cliente",
+										"test-guest"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sun, 28 Dec 2025 02:43:33 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "57"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "9b4db5f39febad73-MIA"
+								},
+								{
+									"key": "access-control-allow-credentials",
+									"value": "true"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"35-ijwZqykOuF+8YZPVXBIzicPnhdE\""
+								},
+								{
+									"key": "rndr-id",
+									"value": "4ff74c7b-0a48-4445"
+								},
+								{
+									"key": "vary",
+									"value": "Origin"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"✅ verifyGuest funcionó correctamente\"\n}"
+						}
+					]
+				}
+			]
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
 	"event": [
 		{
 			"listen": "prerequest",

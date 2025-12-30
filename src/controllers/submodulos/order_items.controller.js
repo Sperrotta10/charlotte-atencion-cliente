@@ -76,6 +76,7 @@ export const updateOrderStatus = async (req, res) => {
 
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Comanda no encontrada' });
+    if (error.code === "ORDER_CANNOT_BE_CANCELLED") return res.status(409).json({ message: error.message });
     res.status(500).json({ message: 'Error actualizando', error: error.message });
   }
 };

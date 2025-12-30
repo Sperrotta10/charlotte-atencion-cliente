@@ -1,4 +1,5 @@
 import { prisma } from '../../db/client.js';
+import { envs } from '../../config/envs.js';
 
 export const OrderService = {
   
@@ -38,84 +39,181 @@ export const OrderService = {
             create: orderItemsData
           }
         },
-        include: { items: true }
+        include: { 
+          items: true,
+          cliente: { 
+            include: { table: true }
+          }
+        }
       });
     });
 
-    // B. EVENTO: NOTIFICAR AL KDS (Cocina)
+    // B. EVENTO: NOTIFICAR AL KDS (Módulo Cocina)
+    // Ejecutamos esto fuera de la transacción para no bloquear la BD si la API externa tarda
     try {
-      const kdsUrl = 'http://localhost:3000/api/kitchen/v1/kds/inject';
-      
-      const kdsPayload = {
-        orderId: newComanda.id,
-        items: newComanda.items,
-        notes: newComanda.notes,
-        timestamp: new Date()
-      };
-
-      const response = await fetch(kdsUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(kdsPayload)
-      });
-
-      if (!response.ok) console.warn(`[KDS Warning] Cocina respondió: ${response.statusText}`);
-      else console.log(`[KDS] Orden ${newComanda.id} enviada a cocina correctamente.`);
-
+      await OrderService.notifyKitchen(newComanda);
     } catch (error) {
-      console.error("[KDS Error] No se pudo conectar con el módulo de cocina:", error.message);
+      // No lanzamos error al cliente porque el pedido YA se guardó en nuestra BD.
+      // Solo logueamos el fallo de comunicación. El sistema debería tener un re-try job.
+      console.error("[KDS Error] El pedido se guardó localmente pero falló el envío a cocina:", error.message);
     }
 
     return newComanda;
   }, 
 
+  /**
+ * Función auxiliar para manejar la comunicación con Cocina
+ * Aplica lógica de entorno (Dev vs Prod)
+ */
+  notifyKitchen: async (comanda) => {
+    // 1. Preparar el Payload EXACTO que pide Cocina
+    console.log("[KDS] Preparando payload para cocina...", comanda);
+    const kdsPayload = {
+      external_order_id: comanda.id, // Tu ID de comanda
+      source_module: "AC_MODULE",    // Atención al Cliente
+      service_mode: "DINE_IN",       // Comer en sitio
+      display_label: `Mesa ${comanda.cliente.table.tableNumber}`, // Ej: Mesa 5
+      customer_name: comanda.cliente.customerName,
+      items: comanda.items.map(item => ({
+        product_id: item.productId, // ID del producto (debe coincidir entre módulos)
+        quantity: item.quantity,
+        notes: item.specialInstructions || ""
+      }))
+    };
+
+    // 2. Lógica de Entorno
+    if (envs.NODE_ENV === 'development') {
+      // SIMULACIÓN (MOCK)
+      console.log("---------------------------------------------------");
+      console.log("🚧 [DEV MODE] Simulando inyección a KDS (Cocina)");
+      console.log("📡 Endpoint:", `${envs.CHARLOTTE_COCINA_URL || 'http://localhost:3002'}/api/kitchen/kds/inject`);
+      console.log("📦 Payload:", JSON.stringify(kdsPayload, null, 2));
+      console.log("---------------------------------------------------");
+      return; // Terminamos aquí en desarrollo
+    }
+
+    // 3. PRODUCCIÓN (Fetch Real)
+    const kitchenUrl = envs.KITCHEN_URL; // Asegúrate de tener esto en tu .env
+    
+    if (!kitchenUrl) {
+      console.warn("[KDS Warning] Variable KITCHEN_URL no definida en producción.");
+      return;
+    }
+
+    const response = await fetch(`${kitchenUrl}/api/kitchen/kds/inject`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        // 'x-api-key': envs.INTERNAL_API_KEY // Si cocina pide auth
+      },
+      body: JSON.stringify(kdsPayload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cocina respondió ${response.status}: ${errorText}`);
+    }
+
+    const responseData = await response.json();
+    console.log(`[KDS] Orden ${comanda.id} inyectada exitosamente. Ticket Cocina: ${responseData.kds_ticket_id || 'N/A'}`);
+  },
+
   // ---------------------------------------------------------
   // 2. MÉTODO UPDATE STATUS (Con Notificación al Cliente)
   // ---------------------------------------------------------
   updateStatus: async (id, status) => {
+    // 1. Obtener estado actual para validar reglas de negocio
+    const currentOrder = await prisma.comanda.findUnique({
+      where: { id: Number(id) },
+      select: { status: true }
+    });
+
+    if (!currentOrder) {
+      const error = new Error("Comanda no encontrada.");
+      error.code = 'P2025';
+      throw error;
+    } 
+
+    // 2. Validación de Integridad (Regla de Negocio)
+    // El cliente solo puede cancelar si la orden NO se ha empezado a cocinar o entregar.
+    if (status === 'CANCELLED') {
+      if (currentOrder.status !== 'PENDING') {
+        const error = new Error("No se puede cancelar una orden que ya está en preparación o fue entregada.");
+        error.code = 'ORDER_CANNOT_BE_CANCELLED';
+        throw error;
+      }
+    }
+
+    // 3. Preparar datos de actualización
     const dataToUpdate = { status: status };
 
-    // Lógica de negocio: Timestamp de entrega si aplica
+    // Lógica de KPI: Timestamp de entrega
     if (status === 'DELIVERED') {
       dataToUpdate.deliveredAt = new Date();
     }
 
-    // A. ACTUALIZACIÓN EN DB
-    // Importante: incluimos 'cliente' para obtener el tableId necesario para la notificación
+    // A. ACTUALIZACIÓN EN DB (Tu Módulo)
     const updatedOrder = await prisma.comanda.update({
       where: { id: Number(id) },
       data: dataToUpdate,
       include: { items: true, cliente: true } 
     });
 
-    // B. EVENTO: NOTIFICAR AL MÓDULO DE INTERFACES (CLIENTE)
-    // Esto cubre el requisito de avisar cuando pasa a COOKING, DELIVERED o CANCELLED
-    try {
-      // URL hipotética definida para notificaciones a la tablet/app
-      const interfaceUrl = 'http://localhost:3000/api/interfaces/v1/notify';
-      
-      const payload = {
-        tableId: updatedOrder.cliente.tableId,
-        orderId: updatedOrder.id,
-        newStatus: status,
-        message: status === 'CANCELLED' 
-          ? 'Tu orden ha sido cancelada.' 
-          : `El estado de tu orden ha cambiado a: ${status}`
-      };
-
-      // Fire & Forget: No usamos await para no retrasar la respuesta API si la interfaz está lenta
-      fetch(interfaceUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(err => console.warn(`[Interface Warning] No se pudo notificar al cliente: ${err.message}`));
-
-    } catch (error) {
-      // Si falla la notificación, no detenemos el proceso, solo logueamos
-      console.error("Error al intentar notificar interfaz:", error);
+    // B. COMUNICACIÓN CON OTROS MÓDULOS (Eventos)
+    
+    // Caso 1: Cancelación -> Notificar a Cocina (Detener producción)
+    if (status === 'CANCELLED') {
+      // Usamos fire-and-forget (await opcional dependiendo de si quieres que espere)
+      await OrderService.notifyKitchenCancellation(updatedOrder.id);
     }
 
-    return updatedOrder;
+    // Caso 2: Cambio de Estado -> Notificar al Cliente (Feedback Visual)
+    // (Aquí iría la lógica de WebSockets o Notificación Push al Frontend)
+    let messageToClient = '';
+    if (status === 'COOKING' || status === 'DELIVERED') {
+      console.log(`[INFO] Notificar al cliente ${updatedOrder.cliente.customerName}: Su pedido está ${status}`);
+      messageToClient = `Hola ${updatedOrder.cliente.customerName}, su pedido está ahora ${status.replace('_', ' ').toLowerCase()}.`;
+    }
+
+    return { ...updatedOrder, clientMessage: messageToClient};
+  },
+
+  /**
+ * Notifica al módulo de cocina sobre la cancelación de una orden.
+ * Aplica lógica de entorno (Dev vs Prod).
+ */
+  notifyKitchenCancellation: async (externalOrderId) => {
+    // 1. MODO DESARROLLO (Simulación)
+    if (envs.NODE_ENV === 'development') {
+      console.log("---------------------------------------------------");
+      console.log("🚧 [DEV MODE] Simulando cancelación en KDS (Cocina)");
+      console.log("📡 Endpoint:", `${envs.KITCHEN_URL || 'http://localhost:3002'}/api/kitchen/kds/order/${externalOrderId}/cancel`);
+      console.log("📝 Acción: Rollback de producción");
+      console.log("---------------------------------------------------");
+      return;
+    }
+
+    // 2. MODO PRODUCCIÓN (Fetch Real)
+    const kitchenUrl = envs.KITCHEN_URL;
+    if (!kitchenUrl) return;
+
+    try {
+      const response = await fetch(`${kitchenUrl}/api/kitchen/kds/order/${externalOrderId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: "Cancelado por el cliente" })
+      });
+
+      if (!response.ok) {
+        console.warn(`[KDS Warning] Cocina respondió error al cancelar: ${response.statusText}`);
+      } else {
+        console.log(`[KDS] Orden ${externalOrderId} cancelada en cocina exitosamente.`);
+      }
+    } catch (error) {
+      console.error("[KDS Error] Fallo al conectar con cocina:", error.message);
+      // Nota: No lanzamos error para no revertir la cancelación en el lado del cliente,
+      // pero esto debería generar una alerta administrativa.
+    }
   },
 
   // ---------------------------------------------------------

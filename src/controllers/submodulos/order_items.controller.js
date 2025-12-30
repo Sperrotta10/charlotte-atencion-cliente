@@ -1,10 +1,16 @@
 import { OrderService } from '../../services/submodulos/order_items.service.js';
-import { createOrderSchema, updateOrderSchema, getOrdersQuerySchema } from '../../schemas/submodulos/order_items.schema.js';
+import { 
+  createOrderSchema, 
+  updateOrderSchema, 
+  getOrdersQuerySchema 
+} from '../../schemas/submodulos/order_items.schema.js';
 
-// 1. CREAR COMANDA (POST)
+// -------------------------------------------------------
+// 1. CREAR COMANDA (POST) - ACCESO: CLIENTES (GUEST)
+// -------------------------------------------------------
 export const createOrder = async (req, res) => {
   try {
-    // Validar Input
+    // A. Validar Input del Body (Items, notas, etc.) con Zod
     const validation = createOrderSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -15,10 +21,27 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Ejecutar Lógica
-    const result = await OrderService.create(validation.data);
+    // B. SEGURIDAD: Obtener datos reales del Token (Middleware verifyGuest)
+    // El middleware se asegura de que req.guest exista, pero validamos por robustez.
+    if (!req.guest || !req.guest.tableId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No se pudo identificar la mesa. Escanee el QR nuevamente.' 
+      });
+    }
 
-    // RESPONDER (Formato estricto Req 1.3.1)
+    // C. INYECCIÓN DE DATOS DE SESIÓN (AJUSTE DE SEGURIDAD)
+    // Sobrescribimos tableId y clienteId con los datos del token para evitar fraudes.
+    const orderData = {
+      ...validation.data,          // Los items y notas que envió el usuario
+      tableId: req.guest.tableId,  // <--- DATO SEGURO DEL TOKEN
+      clienteId: req.guest.id      // <--- DATO SEGURO DEL TOKEN
+    };
+
+    // D. Ejecutar Lógica con los datos seguros
+    const result = await OrderService.create(orderData);
+
+    // E. Responder
     res.status(201).json({
       id: result.id,
       status: result.status
@@ -27,7 +50,8 @@ export const createOrder = async (req, res) => {
   } catch (error) {
     console.error(error);
     
-    if (error.message.includes('No hay un cliente activo')) {
+    // Manejo de errores de negocio (Ej: Cliente ya no está activo)
+    if (error.message && error.message.includes('No hay un cliente activo')) {
       return res.status(409).json({ success: false, message: error.message });
     }
 
@@ -39,7 +63,9 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// 2. ACTUALIZAR ESTADO (PATCH)
+// -------------------------------------------------------
+// 2. ACTUALIZAR ESTADO (PATCH) - ACCESO: STAFF
+// -------------------------------------------------------
 export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -59,7 +85,9 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-// 3. OBTENER POR ID (GET)
+// -------------------------------------------------------
+// 3. OBTENER POR ID (GET) - ACCESO: STAFF
+// -------------------------------------------------------
 export const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -74,8 +102,8 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-
-// 4. OBTENER LISTADO (GET /)
+// -------------------------------------------------------
+// 4. OBTENER LISTADO (GET /) - ACCESO: STAFF
 // -------------------------------------------------------
 export const getAllOrders = async (req, res) => {
   try {

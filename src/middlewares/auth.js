@@ -163,7 +163,6 @@ export const verifyGuest = async (req, res, next) => {
   }
 };
 
-
 export const verifyStaff = (resource, method) => {
   return async (req, res, next) => {
     try {
@@ -227,7 +226,6 @@ export const verifyStaff = (resource, method) => {
     }
   };
 };
-
 
 /**
  * Consulta el endpoint /hasPermission del Módulo de Seguridad.

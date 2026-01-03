@@ -1,14 +1,10 @@
-import jwt from 'jsonwebtoken';
-import { envs } from '../config/envs.js';
-import { prisma } from '../db/client.js';
+import jwt from "jsonwebtoken";
+import { envs } from "../config/envs.js";
+import { prisma } from "../db/client.js";
 
 export const verifyGuestOrStaff = () => {
   return async (req, res, next) => {
-    
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Token no proporcionado' });
-    }
 
     const token = authHeader.substring(7);
 
@@ -19,105 +15,86 @@ export const verifyGuestOrStaff = () => {
         decoded = jwt.verify(token, envs.JWT_SECRET);
       } catch (jwtError) {
         // Si falla aquí, significa que no era Guest (BD) y tampoco es un JWT válido (Staff)
-        console.error('Error JWT:', jwtError.message);
-        return res.status(401).json({ 
-            error: 'Token no válido', 
-            message: 'No se encontró sesión de invitado y el token no es válido para Staff.' 
+        console.error("Error JWT:", jwtError.message);
+      }
+      if (decoded) {
+        // ---------------------------------------------------
+        // CAMINO A: GUEST (Validar contra BD Local)
+        // ---------------------------------------------------
+        const guest = await prisma.clienteTemporal.findUnique({
+          where: { sessionToken: token },
         });
+
+        if (guest && guest.status === "ACTIVE") {
+          req.guest = {
+            id: guest.id,
+            tableId: guest.tableId,
+            name: guest.customerName,
+            dni: guest.customerDni,
+            role: "guest",
+          };
+          req.userType = "GUEST"; // Flag para el controlador
+          return next(); // ✅ IMPORTANTE: Dejar pasar
+        }
       }
-
-      // ---------------------------------------------------
-      // CAMINO A: GUEST (Validar contra BD Local)
-      // ---------------------------------------------------
-      const guest = await prisma.clienteTemporal.findUnique({
-        where: { sessionToken: token }
-      });
-
-      if (guest && guest.status === 'ACTIVE') {
-        req.guest = {
-          id: guest.id,
-          tableId: guest.tableId,
-          name: guest.customerName,
-          dni: guest.customerDni,
-          role: 'guest'
-        };
-        req.userType = 'GUEST'; // Flag para el controlador
-        return next(); // ✅ IMPORTANTE: Dejar pasar
-      }
-
-      // ---------------------------------------------------
-      // CAMINO B: ADMIN
-      // ---------------------------------------------------
-      if (decoded.isAdmin === true) {
-        req.user = { ...decoded, type: 'admin', token };
-        req.userType = 'STAFF'; // Admin cuenta como Staff
-        return next(); // ✅ IMPORTANTE: Dejar pasar
-      }
-
-      // ---------------------------------------------------
-      // CAMINO C: STAFF (Resto del personal)
-      // ---------------------------------------------------
-      // Si el token es válido, no es guest y no es admin, asumimos que es Staff.
-      
-      req.user = { ...decoded, type: 'staff', token };
-      req.userType = 'STAFF';
-      
-      return next(); // 🛑 AQUÍ ESTABA EL ERROR: Faltaba esta línea para continuar.
-
+      // Si no tiene un token de guest valido, se asume que es una petición del STAFF
+      req.userType = "STAFF";
+      req.user = { type: "staff", token };
+      return next();
     } catch (error) {
-      console.error('Error interno middleware:', error);
-      return res.status(500).json({ error: 'Error interno verificando sesión' });
+      console.error("Error interno middleware:", error);
+      return res
+        .status(500)
+        .json({ error: "Error interno verificando sesión" });
     }
   };
 };
 
-
 export const ensureOwnership = (model) => {
   return async (req, res, next) => {
     // 1. Si es STAFF, tiene acceso VIP (pase directo)
-    if (req.userType === 'STAFF') {
-      return next(); 
+    if (req.userType === "STAFF") {
+      return next();
     }
 
     // 2. Si es GUEST, verificamos propiedad
-    if (req.userType === 'GUEST') {
+    if (req.userType === "GUEST") {
       const resourceId = req.params.id; // Asumimos que el ID viene en la URL
-      
+
       // Buscamos el recurso para ver de quién es
       // Usamos prisma[model] dinámicamente
       const resource = await prisma[model].findUnique({
         where: { id: resourceId }, // Ojo: Si usas UUID asegúrate que resourceId sea string
-        select: { clienteId: true }
+        select: { clienteId: true },
       });
 
       if (!resource) {
-        return res.status(404).json({ error: 'Recurso no encontrado' });
+        return res.status(404).json({ error: "Recurso no encontrado" });
       }
 
       // LA COMPARACIÓN CLAVE 🔐
       if (resource.clienteId !== req.guest.id) {
-        return res.status(403).json({ 
-          error: 'Acceso Prohibido', 
-          message: 'No puedes acceder a datos que no te pertenecen.' 
+        return res.status(403).json({
+          error: "Acceso Prohibido",
+          message: "No puedes acceder a datos que no te pertenecen.",
         });
       }
 
       return next();
     }
 
-    return res.status(401).json({ error: 'Identidad desconocida' });
+    return res.status(401).json({ error: "Identidad desconocida" });
   };
 };
-
 
 export const verifyGuest = async (req, res, next) => {
   try {
     // 1. Extracción del token
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
-        error: 'No autorizado',
-        message: 'Token no proporcionado.'
+        error: "No autorizado",
+        message: "Token no proporcionado.",
       });
     }
 
@@ -129,53 +106,53 @@ export const verifyGuest = async (req, res, next) => {
     try {
       decoded = jwt.verify(token, envs.JWT_SECRET);
     } catch (error) {
-      return res.status(401).json({ error: 'Token inválido o expirado' });
+      return res.status(401).json({ error: "Token inválido o expirado" });
     }
 
     // 3. VALIDACIÓN DE ESTADO CONTRA BASE DE DATOS (El paso crítico)
     // Buscamos al cliente por el token exacto y verificamos que esté ACTIVO.
     const currentClient = await prisma.clienteTemporal.findUnique({
-      where: { 
-        sessionToken: token 
+      where: {
+        sessionToken: token,
       },
       include: {
-        table: true // Opcional: si necesitas datos de la mesa
-      }
+        table: true, // Opcional: si necesitas datos de la mesa
+      },
     });
 
     // 4. Casos de rechazo de sesión
     if (!currentClient) {
       return res.status(403).json({
-        error: 'Sesión no encontrada',
-        message: 'Esta sesión no existe en nuestros registros.'
+        error: "Sesión no encontrada",
+        message: "Esta sesión no existe en nuestros registros.",
       });
     }
 
-    if (currentClient.status !== 'ACTIVE') {
+    if (currentClient.status !== "ACTIVE") {
       return res.status(403).json({
-        error: 'Sesión finalizada',
-        message: 'Tu sesión en esta mesa ya ha sido cerrada. Por favor escanea el QR nuevamente.'
+        error: "Sesión finalizada",
+        message:
+          "Tu sesión en esta mesa ya ha sido cerrada. Por favor escanea el QR nuevamente.",
       });
     }
 
     // 5. Inyectar el usuario COMPLETO en el request
     // Ahora tus controladores tendrán acceso al ID real de la base de datos (currentClient.id)
     req.guest = {
-      id: currentClient.id,             // ESTO ES LO QUE NECESITABAS
+      id: currentClient.id, // ESTO ES LO QUE NECESITABAS
       tableId: currentClient.tableId,
       name: currentClient.customerName,
       dni: currentClient.customerDni,
-      role: 'guest',
-      token: token
+      role: "guest",
+      token: token,
     };
 
     next();
-
   } catch (error) {
-    console.error('Error crítico en verifyGuest:', error);
+    console.error("Error crítico en verifyGuest:", error);
     return res.status(500).json({
-      error: 'Error interno',
-      message: 'No se pudo verificar la sesión del invitado.'
+      error: "Error interno",
+      message: "No se pudo verificar la sesión del invitado.",
     });
   }
 };
@@ -185,11 +162,11 @@ export const verifyStaff = (resource, method) => {
     try {
       // 1. Intercepción del Token [cite: 71]
       const authHeader = req.headers.authorization;
-      
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({
-          error: 'No autorizado',
-          message: 'Token de autenticación no proporcionado.'
+          error: "No autorizado",
+          message: "Token de autenticación no proporcionado.",
         });
       }
 
@@ -200,45 +177,54 @@ export const verifyStaff = (resource, method) => {
       try {
         decoded = jwt.verify(token, envs.JWT_SECRET);
       } catch (error) {
-        return res.status(401).json({ 
-            error: 'Token inválido', 
-            message: 'Su sesión ha expirado o es inválida.' 
+        return res.status(401).json({
+          error: "Token inválido",
+          message: "Su sesión ha expirado o es inválida.",
         });
       }
 
       // 3. Verificar si es Administrador
       // Si es admin, tiene pase libre y no consultamos al MS de Seguridad.
       if (decoded.isAdmin === true) {
-        req.user = { ...decoded, type: 'admin', token };
+        req.user = { ...decoded, type: "admin", token };
         return next();
       }
 
-      // Validación de integridad: El manual exige validar resource y method 
+      // Validación de integridad: El manual exige validar resource y method
       if (!resource || !method) {
-        console.error('❌ Error de implementación: verifyStaff llamado sin resource o method');
-        return res.status(500).json({ error: 'Error de configuración de seguridad en el servidor.' });
+        console.error(
+          "❌ Error de implementación: verifyStaff llamado sin resource o method"
+        );
+        return res.status(500).json({
+          error: "Error de configuración de seguridad en el servidor.",
+        });
       }
 
       // 4. Validación Delegada (S2S) al Módulo de Seguridad [cite: 101]
-      const hasPermission = await checkPermissionViaSecurityModule(token, resource, method);
+      const hasPermission = await checkPermissionViaSecurityModule(
+        token,
+        resource,
+        method
+      );
 
       if (!hasPermission) {
         // [cite: 131] Si hasPermission es false, responder 403.
         return res.status(403).json({
-          error: 'Acceso Denegado',
-          message: 'No tiene permisos para realizar esta acción sobre este recurso.'
+          error: "Acceso Denegado",
+          message:
+            "No tiene permisos para realizar esta acción sobre este recurso.",
         });
       }
 
       // 5. Adjuntar usuario y continuar
-      req.user = { ...decoded, type: 'staff', token };
+      req.user = { ...decoded, type: "staff", token };
       next();
-
     } catch (error) {
-      console.error('🔥 Error crítico en verifyStaff:', error);
+      console.error("🔥 Error crítico en verifyStaff:", error);
       return res.status(500).json({
-        error: 'Error interno',
-        message: 'No se pudo verificar la autorización con el servicio de seguridad.'
+        error: "Error interno",
+        message:
+          "No se pudo verificar la autorización con el servicio de seguridad.",
       });
     }
   };
@@ -252,22 +238,25 @@ async function checkPermissionViaSecurityModule(token, resource, method) {
   const securityUrl = envs.CHARLOTTE_SECURITY_URL;
 
   if (!securityUrl) {
-    throw new Error('CHARLOTTE_SECURITY_URL no está configurada.');
+    throw new Error("CHARLOTTE_SECURITY_URL no está configurada.");
   }
 
   try {
-    // Petición HTTP POST 
-    const response = await fetch(`${securityUrl}/api/seguridad/auth/hasPermission`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // [cite: 106]
-      },
-      body: JSON.stringify({
-        resource: resource, // Ej: "Comanda_atc" [cite: 116]
-        method: method      // Ej: "Create" [cite: 117]
-      })
-    });
+    // Petición HTTP POST
+    const response = await fetch(
+      `${securityUrl}/api/seguridad/auth/hasPermission`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // [cite: 106]
+        },
+        body: JSON.stringify({
+          resource: resource, // Ej: "Comanda_atc" [cite: 116]
+          method: method, // Ej: "Create" [cite: 117]
+        }),
+      }
+    );
 
     if (!response.ok) {
       console.warn(`⚠️ Seguridad respondió status ${response.status}`);
@@ -275,13 +264,11 @@ async function checkPermissionViaSecurityModule(token, resource, method) {
     }
 
     const data = await response.json();
-    
+
     // El endpoint responde: { "hasPermission": true } [cite: 129]
     return data.hasPermission === true;
-
   } catch (error) {
-    console.error(' Error comunicando con Módulo de Seguridad:', error.message);
+    console.error(" Error comunicando con Módulo de Seguridad:", error.message);
     return false; // Fail-safe: si el microservicio cae, nadie pasa (excepto admins locales).
   }
 }
-

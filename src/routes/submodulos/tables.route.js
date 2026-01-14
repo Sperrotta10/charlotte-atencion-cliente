@@ -19,8 +19,12 @@ router.get('/:id', verifyStaff('Table_atc', 'Read'), tablesController.getTableBy
 // PATCH /tables/:id - Actualizar Estado Mesa (Maître/Staff con permiso UPDATE)
 router.patch('/:id', verifyStaff('Table_atc', 'Update'), tablesController.updateTableStatus);
 
-// DELETE /tables/:id - Eliminar Mesa (Gerente con permiso DELETE)
-router.delete('/:id',  verifyStaff('Table_atc', 'Delete'), tablesController.deleteTable);
+// DELETE /tables/:id - Soft Delete
+router.delete('/:id', verifyStaff('Table_atc', 'Delete'), tablesController.deleteTable);
+
+// PATCH /tables/:id/restore - Restore (Nuevo endpoint)
+// Nota: El permiso podría ser 'Update' o 'Delete', depende de tu lógica. Usaré 'Update'.
+router.patch('/:id/restore', verifyStaff('Table_atc', 'Update'), tablesController.restoreTable);
 
 export default router;
 

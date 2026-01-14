@@ -31,55 +31,57 @@ export const createTable = async ({ table_number, capacity }) => {
 };
 
 // Lógica de negocio para obtener todas las mesas con paginación
-export const getAllTables = async ({ page, limit, status }) => {
-  // 1. Calcular el offset
+export const getAllTables = async ({ page, limit, status, archived = false }) => {
   const skip = (page - 1) * limit;
 
-  // 2. Construir el filtro where
-  // CAMBIO CLAVE: Inicializamos el objeto con isActive: true
+  // 1. DEFINIR EL ESTADO DE ACTIVIDAD
+  // Si archived es true, buscamos las isActive: false.
+  // Si archived es false, buscamos las isActive: true.
+  const isActiveFilter = !archived; 
+
   const where = {
-    isActive: true, 
+    isActive: isActiveFilter, // <--- AQUÍ ESTÁ LA MAGIA
   };
 
-  // Si envían un status específico (ej: AVAILABLE), se agrega al filtro
+  // 2. Si hay filtro de estatus (ej: ver solo las "OUT_OF_SERVICE" eliminadas)
   if (status) {
     where.currentStatus = status;
   }
 
-  // 3. Obtener el total de items (ahora solo cuenta las activas)
+  // 3. Obtener total
   const totalItems = await prisma.table.count({ where });
 
-  // 4. Obtener las mesas
+  // 4. Obtener mesas
   const tables = await prisma.table.findMany({
-    where, // Aquí ya va incluido el isActive: true
+    where,
     skip,
     take: limit,
     orderBy: {
-      tableNumber: 'asc',
+      // OJO: Las eliminadas tendrán números negativos raros (-79283), 
+      // así que quizás quieras ordenar por ID o por fecha de actualización
+      tableNumber: 'asc', 
     },
     include: {
       clientes: {
-        where: {
-          status: 'ACTIVE',
-        },
-        select: {
-          id: true,
-        },
+        where: { status: 'ACTIVE' },
+        select: { id: true },
       },
     },
   });
 
-  // 5. Formatear (igual que antes)
+  // 5. Formatear
   const formattedTables = tables.map((table) => ({
     id: table.id,
-    table_number: table.tableNumber,
+    // Nota visual: Si es archivada, el número será negativo (ej: -7293).
+    // Podrías formatearlo aquí si quisieras ocultar eso.
+    table_number: table.tableNumber, 
     qr_uuid: table.qrUuid,
     capacity: table.capacity,
     current_status: table.currentStatus,
     active_sessions: table.clientes.length,
+    is_active: table.isActive // Útil para que el frontend sepa qué está viendo
   }));
 
-  // 6. Metadatos
   const totalPages = Math.ceil(totalItems / limit);
 
   return {
@@ -89,6 +91,7 @@ export const getAllTables = async ({ page, limit, status }) => {
       current_page: page,
       per_page: limit,
       total_pages: totalPages,
+      showing_archived: archived // Info extra para el frontend
     },
   };
 };
@@ -248,13 +251,14 @@ export const updateTableStatus = async ({ id, currentStatus }) => {
 };
 
 // Lógica de negocio para eliminar una mesa
+// --- SOFT DELETE ---
 export const deleteTable = async ({ id }) => {
-  // 1. Buscar la mesa
+  // 1. Buscar la mesa (incluso si ya está borrada, para validar)
   const table = await prisma.table.findUnique({
     where: { id },
     include: {
       clientes: {
-        where: { status: 'ACTIVE' }, // Solo sesiones vivas
+        where: { status: 'ACTIVE' },
       },
     },
   });
@@ -265,31 +269,94 @@ export const deleteTable = async ({ id }) => {
     throw error;
   }
 
-  // 2. Validación: ¿Hay gente comiendo AHORA?
-  // Si hay sesiones activas, NO dejamos borrar (ni siquiera soft delete)
+  // 2. Si ya está eliminada, avisar
+  if (!table.isActive) {
+    const error = new Error('La mesa ya se encuentra eliminada.');
+    error.code = 'TABLE_ALREADY_DELETED'; // Código personalizado
+    throw error;
+  }
+
+  // 3. Validación: No borrar si hay gente
   if (table.clientes.length > 0) {
     const error = new Error('No se puede eliminar una mesa con sesiones activas.');
     error.code = 'ACTIVE_SESSIONS_EXIST';
     throw error;
   }
 
-  // 3. EJECUTAR SOFT DELETE
-  // Cambiamos isActive a false.
-  // TRUCO PRO: Si 'tableNumber' es único en tu DB, cámbialo para liberar el número.
-  // Ej: La mesa "5" pasa a llamarse "5_deleted_12345678"
-  
-  const timestamp = new Date().getTime();
-  
+  // 4. GENERAR NÚMERO NEGATIVO (Solución al error de String vs Int)
+  // Generamos un aleatorio para evitar colisiones si borras la mesa 7 cinco veces.
+  // Ejemplo: Mesa 7 -> -74821
+  const randomSuffix = Math.floor(Math.random() * 100000); 
+  const deletedTableNumber = -1 * (Math.abs(table.tableNumber) + randomSuffix);
+
+  // 5. EJECUTAR UPDATE (Soft Delete)
   const deletedTable = await prisma.table.update({
     where: { id },
     data: {
-      isActive: false,        // La ocultamos
-      currentStatus: 'OUT_OF_SERVICE', // Por consistencia
-      tableNumber: `${table.tableNumber}_DEL_${timestamp}`, 
+      isActive: false,                 // Ocultar
+      currentStatus: 'OUT_OF_SERVICE', // Estado coherente
+      tableNumber: deletedTableNumber, // Liberar el número positivo original
     },
   });
 
-  return deletedTable;
+  // Retornamos el número original para que el mensaje al usuario sea amigable
+  return { ...deletedTable, originalTableNumber: table.tableNumber };
+};
+
+// --- RESTORE (NUEVO) ---
+export const restoreTable = async ({ id, newTableNumber }) => {
+  // 1. Buscar la mesa eliminada (isActive: false)
+  const table = await prisma.table.findUnique({
+    where: { id },
+  });
+
+  if (!table) {
+    const error = new Error('Mesa no encontrada');
+    error.code = 'TABLE_NOT_FOUND';
+    throw error;
+  }
+
+  if (table.isActive) {
+    const error = new Error('La mesa ya está activa.');
+    error.code = 'TABLE_ALREADY_ACTIVE';
+    throw error;
+  }
+
+  // 2. Definir qué número de mesa usará
+  // Si el usuario envió un número, usamos ese. Si no, intentamos recuperar el original (esto es riesgoso si ya se ocupó).
+  // RECOMENDACIÓN: Obligar a enviar el nuevo número.
+  
+  if (!newTableNumber) {
+    const error = new Error('Debes asignar un número de mesa para restaurarla.');
+    error.code = 'MISSING_TABLE_NUMBER'; 
+    throw error;
+  }
+
+  // 3. Validar que el número deseado no esté ocupado por otra mesa activa
+  const conflict = await prisma.table.findFirst({
+    where: {
+      tableNumber: newTableNumber,
+      isActive: true
+    }
+  });
+
+  if (conflict) {
+    const error = new Error(`El número de mesa ${newTableNumber} ya está en uso. Elige otro.`);
+    error.code = 'TABLE_NUMBER_CONFLICT';
+    throw error;
+  }
+
+  // 4. RESTAURAR
+  const restoredTable = await prisma.table.update({
+    where: { id },
+    data: {
+      isActive: true,
+      currentStatus: 'AVAILABLE', // Nace disponible
+      tableNumber: newTableNumber, // Asignamos el número limpio
+    },
+  });
+
+  return restoredTable;
 };
 
 

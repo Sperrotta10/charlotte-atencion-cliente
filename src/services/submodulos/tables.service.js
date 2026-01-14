@@ -32,21 +32,26 @@ export const createTable = async ({ table_number, capacity }) => {
 
 // Lógica de negocio para obtener todas las mesas con paginación
 export const getAllTables = async ({ page, limit, status }) => {
-  // 1. Calcular el offset usando la fórmula: (page - 1) * limit
+  // 1. Calcular el offset
   const skip = (page - 1) * limit;
 
   // 2. Construir el filtro where
-  const where = {};
+  // CAMBIO CLAVE: Inicializamos el objeto con isActive: true
+  const where = {
+    isActive: true, 
+  };
+
+  // Si envían un status específico (ej: AVAILABLE), se agrega al filtro
   if (status) {
     where.currentStatus = status;
   }
 
-  // 3. Obtener el total de items para los metadatos
+  // 3. Obtener el total de items (ahora solo cuenta las activas)
   const totalItems = await prisma.table.count({ where });
 
-  // 4. Obtener las mesas con paginación
+  // 4. Obtener las mesas
   const tables = await prisma.table.findMany({
-    where,
+    where, // Aquí ya va incluido el isActive: true
     skip,
     take: limit,
     orderBy: {
@@ -55,26 +60,26 @@ export const getAllTables = async ({ page, limit, status }) => {
     include: {
       clientes: {
         where: {
-          status: 'ACTIVE', // Solo contar sesiones activas
+          status: 'ACTIVE',
         },
         select: {
-          id: true, // Solo necesitamos el id para contar
+          id: true,
         },
       },
     },
   });
 
-  // 5. Formatear las mesas con active_sessions calculado
+  // 5. Formatear (igual que antes)
   const formattedTables = tables.map((table) => ({
     id: table.id,
     table_number: table.tableNumber,
     qr_uuid: table.qrUuid,
     capacity: table.capacity,
     current_status: table.currentStatus,
-    active_sessions: table.clientes.length, // Campo calculado
+    active_sessions: table.clientes.length,
   }));
 
-  // 6. Calcular metadatos de paginación
+  // 6. Metadatos
   const totalPages = Math.ceil(totalItems / limit);
 
   return {
@@ -249,7 +254,7 @@ export const deleteTable = async ({ id }) => {
     where: { id },
     include: {
       clientes: {
-        where: { status: 'ACTIVE' }, // Solo nos importan las activas
+        where: { status: 'ACTIVE' }, // Solo sesiones vivas
       },
     },
   });
@@ -260,39 +265,31 @@ export const deleteTable = async ({ id }) => {
     throw error;
   }
 
-  // 2. VALIDACIÓN LÓGICA: ¿Hay gente sentada?
-  // No nos importa si el estado dice "AVAILABLE" o "OUT_OF_SERVICE", 
-  // lo que manda es la REALIDAD: ¿Hay sesiones activas?
-  
-  const activeSessions = table.clientes.length;
-
-  if (activeSessions > 0) {
-    const error = new Error('No se puede eliminar una mesa con clientes activos. Cierre las sesiones primero.');
+  // 2. Validación: ¿Hay gente comiendo AHORA?
+  // Si hay sesiones activas, NO dejamos borrar (ni siquiera soft delete)
+  if (table.clientes.length > 0) {
+    const error = new Error('No se puede eliminar una mesa con sesiones activas.');
     error.code = 'ACTIVE_SESSIONS_EXIST';
     throw error;
   }
 
-  // 3. (Opcional) Validación extra de estado
-  // Si por error de sistema la mesa dice OCCUPIED pero activeSessions es 0,
-  // deberíamos permitir borrarla o corregirla. Pero por seguridad:
-  if (table.currentStatus === 'OCCUPIED') {
-      // Aquí podrías decidir: ¿Si tiene 0 sesiones pero dice OCCUPIED, la borro?
-      // Lo seguro es decir que no:
-      const error = new Error('La mesa figura como OCUPADA. Libérela antes de eliminar.');
-      error.code = 'TABLE_OCCUPIED';
-      throw error;
-  }
-
-  // 4. ELIMINAR (Hard Delete)
-  // Nota: Aquí permitimos borrar si es AVAILABLE o OUT_OF_SERVICE
-  await prisma.table.delete({
+  // 3. EJECUTAR SOFT DELETE
+  // Cambiamos isActive a false.
+  // TRUCO PRO: Si 'tableNumber' es único en tu DB, cámbialo para liberar el número.
+  // Ej: La mesa "5" pasa a llamarse "5_deleted_12345678"
+  
+  const timestamp = new Date().getTime();
+  
+  const deletedTable = await prisma.table.update({
     where: { id },
+    data: {
+      isActive: false,        // La ocultamos
+      currentStatus: 'OUT_OF_SERVICE', // Por consistencia
+      tableNumber: `${table.tableNumber}_DEL_${timestamp}`, 
+    },
   });
 
-  return {
-    id: table.id,
-    tableNumber: table.tableNumber,
-  };
+  return deletedTable;
 };
 
 

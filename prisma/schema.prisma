@@ -69,6 +69,7 @@ model Table {
   qrUuid        String      @unique @map("qr_uuid")
   capacity      Int
   currentStatus TableStatus @default(AVAILABLE) @map("current_status")
+  isActive      Boolean  @default(true)
 
   // Relations
   clientes      ClienteTemporal[]

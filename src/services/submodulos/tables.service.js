@@ -244,56 +244,51 @@ export const updateTableStatus = async ({ id, currentStatus }) => {
 
 // Lógica de negocio para eliminar una mesa
 export const deleteTable = async ({ id }) => {
-  // 1. Buscar la mesa por ID con sesiones activas
+  // 1. Buscar la mesa
   const table = await prisma.table.findUnique({
     where: { id },
     include: {
       clientes: {
-        where: {
-          status: 'ACTIVE', // Solo sesiones activas
-        },
-        select: {
-          id: true,
-        },
+        where: { status: 'ACTIVE' }, // Solo nos importan las activas
       },
     },
   });
 
-  // 2. Si no existe: Error 404
   if (!table) {
     const error = new Error('Mesa no encontrada');
     error.code = 'TABLE_NOT_FOUND';
     throw error;
   }
 
-  // 3. Validación de Integridad (Bloqueo): Verificar current_status
-  if (table.currentStatus === 'OCCUPIED') {
-    const error = new Error('No se puede eliminar una mesa ocupada. Libérela primero.');
-    error.code = 'TABLE_OCCUPIED';
-    throw error;
-  }
-
-  if (table.currentStatus === 'OUT_OF_SERVICE') {
-    const error = new Error('No se puede eliminar una mesa fuera de servicio. Habilítela primero.');
-    error.code = 'TABLE_OUT_OF_SERVICE';
-    throw error;
-  }
-
-  // 4. Doble check de seguridad: Verificar active_sessions > 0
+  // 2. VALIDACIÓN LÓGICA: ¿Hay gente sentada?
+  // No nos importa si el estado dice "AVAILABLE" o "OUT_OF_SERVICE", 
+  // lo que manda es la REALIDAD: ¿Hay sesiones activas?
+  
   const activeSessions = table.clientes.length;
+
   if (activeSessions > 0) {
-    const error = new Error('No se puede eliminar una mesa con sesiones activas. Cierre las sesiones primero.');
+    const error = new Error('No se puede eliminar una mesa con clientes activos. Cierre las sesiones primero.');
     error.code = 'ACTIVE_SESSIONS_EXIST';
     throw error;
   }
 
-  // 5. Ejecutar eliminación (Hard Delete)
-  // Si está AVAILABLE o OUT_OF_SERVICE → Eliminar
+  // 3. (Opcional) Validación extra de estado
+  // Si por error de sistema la mesa dice OCCUPIED pero activeSessions es 0,
+  // deberíamos permitir borrarla o corregirla. Pero por seguridad:
+  if (table.currentStatus === 'OCCUPIED') {
+      // Aquí podrías decidir: ¿Si tiene 0 sesiones pero dice OCCUPIED, la borro?
+      // Lo seguro es decir que no:
+      const error = new Error('La mesa figura como OCUPADA. Libérela antes de eliminar.');
+      error.code = 'TABLE_OCCUPIED';
+      throw error;
+  }
+
+  // 4. ELIMINAR (Hard Delete)
+  // Nota: Aquí permitimos borrar si es AVAILABLE o OUT_OF_SERVICE
   await prisma.table.delete({
     where: { id },
   });
 
-  // 6. Retornar información de la mesa eliminada para el mensaje
   return {
     id: table.id,
     tableNumber: table.tableNumber,

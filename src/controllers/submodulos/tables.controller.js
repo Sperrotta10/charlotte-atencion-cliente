@@ -176,41 +176,62 @@ export const updateTableStatus = async (req, res) => {
   }
 };
 
-// DELETE /tables/:id - Eliminar Mesa
+// DELETE /tables/:id - Eliminar Mesa (Soft Delete)
 export const deleteTable = async (req, res) => {
   try {
-    // 1. Validar parámetro ID de la ruta
+    // Validar ID
     const idValidation = tableIdParamSchema.safeParse(req.params);
+    if (!idValidation.success) return res.status(400).json({ errors: idValidation.error.format() });
 
-    if (!idValidation.success) {
-      return res.status(400).json({ errors: idValidation.error.format() });
-    }
-
-    // 2. Llamar al servicio de negocio
+    // Llamar servicio
     const deleted = await tablesService.deleteTable({ id: idValidation.data.id });
 
-    // 3. Formatear salida según especificación
-    const responseBody = {
+    // Respuesta
+    return res.status(200).json({
       success: true,
-      message: `Mesa ${deleted.tableNumber} eliminada correctamente del inventario.`,
-    };
+      message: `Mesa ${deleted.originalTableNumber} eliminada correctamente.`,
+    });
 
-    return res.status(200).json(responseBody);
   } catch (error) {
-    // Manejo de errores específicos
-    if (error.code === 'TABLE_NOT_FOUND') {
-      return res.status(404).json({ error: error.message });
-    }
-
-    if (error.code === 'TABLE_OCCUPIED' || error.code === 'ACTIVE_SESSIONS_EXIST') {
-      return res.status(409).json({ error: error.message });
-    }
-
-    if (error.code === 'TABLE_OUT_OF_SERVICE') {
-      return res.status(409).json({ error: error.message });
-    }
-
+    if (error.code === 'TABLE_NOT_FOUND') return res.status(404).json({ error: error.message });
+    if (error.code === 'ACTIVE_SESSIONS_EXIST') return res.status(409).json({ error: error.message });
+    if (error.code === 'TABLE_ALREADY_DELETED') return res.status(400).json({ error: error.message }); // Bad request si ya estaba borrada
+    
     console.error('Error eliminando mesa:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+// PATCH /tables/:id/restore - Restaurar Mesa
+export const restoreTable = async (req, res) => {
+  try {
+    // 1. Validar ID
+    const idValidation = tableIdParamSchema.safeParse(req.params);
+    if (!idValidation.success) return res.status(400).json({ errors: idValidation.error.format() });
+
+    // 2. Validar Body (necesitamos el nuevo número de mesa)
+    // Puedes crear un Zod schema simple para esto: z.object({ tableNumber: z.number().int().positive() })
+    const { tableNumber } = req.body; 
+
+    // 3. Llamar servicio
+    const restored = await tablesService.restoreTable({ 
+        id: idValidation.data.id, 
+        newTableNumber: parseInt(tableNumber) // Asegurar que sea int
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Mesa restaurada correctamente con el número ${restored.tableNumber}.`,
+      data: restored
+    });
+
+  } catch (error) {
+    if (error.code === 'TABLE_NOT_FOUND') return res.status(404).json({ error: error.message });
+    if (error.code === 'TABLE_ALREADY_ACTIVE') return res.status(400).json({ error: error.message });
+    if (error.code === 'TABLE_NUMBER_CONFLICT') return res.status(409).json({ error: error.message });
+    if (error.code === 'MISSING_TABLE_NUMBER') return res.status(400).json({ error: error.message });
+
+    console.error('Error restaurando mesa:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

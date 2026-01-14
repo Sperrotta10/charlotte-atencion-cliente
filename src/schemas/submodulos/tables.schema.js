@@ -46,6 +46,14 @@ export const getTablesQuerySchema = z.preprocess(
         errorMap: () => ({ message: 'El status debe ser AVAILABLE, OCCUPIED u OUT_OF_SERVICE' }),
       })
       .optional(),
+    archived: z
+      .string()
+      .transform((val) => {
+        if (val === 'true') return true;
+        if (val === 'false') return false;
+        return undefined;
+      })
+      .optional(),
   })
 );
 

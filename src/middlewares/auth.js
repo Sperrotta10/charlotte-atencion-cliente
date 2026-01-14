@@ -2,6 +2,10 @@ import jwt from "jsonwebtoken";
 import { envs } from "../config/envs.js";
 import { prisma } from "../db/client.js";
 
+// 1. Definimos qué modelos usan ID numérico (Int) en tu schema.prisma
+// Agrega aquí cualquier otro modelo que use autoincrement o Int como ID
+const NUMERIC_ID_MODELS = ['clienteTemporal', 'table'];
+
 export const verifyGuestOrStaff = () => {
   return async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -59,28 +63,50 @@ export const ensureOwnership = (model) => {
 
     // 2. Si es GUEST, verificamos propiedad
     if (req.userType === "GUEST") {
-      const resourceId = req.params.id; // Asumimos que el ID viene en la URL
+      let resourceId = req.params.id; // Asumimos que el ID viene en la URL
+
+      if (NUMERIC_ID_MODELS.includes(model)) {
+        // Intentamos convertir a número
+        const parsedId = parseInt(resourceId, 10);
+        
+        // Validación de seguridad: Si no es un número válido, rechazamos antes de consultar a Prisma
+        if (isNaN(parsedId)) {
+          return res.status(400).json({ 
+            error: "ID inválido", 
+            message: `El ID para ${model} debe ser numérico.` 
+          });
+        }
+        
+        resourceId = parsedId;
+      }
 
       // Buscamos el recurso para ver de quién es
       // Usamos prisma[model] dinámicamente
-      const resource = await prisma[model].findUnique({
-        where: { id: resourceId }, // Ojo: Si usas UUID asegúrate que resourceId sea string
-        select: { clienteId: true },
-      });
-
-      if (!resource) {
-        return res.status(404).json({ error: "Recurso no encontrado" });
-      }
-
-      // LA COMPARACIÓN CLAVE 🔐
-      if (resource.clienteId !== req.guest.id) {
-        return res.status(403).json({
-          error: "Acceso Prohibido",
-          message: "No puedes acceder a datos que no te pertenecen.",
+      try {
+        // Buscamos el recurso dinámicamente
+        const resource = await prisma[model].findUnique({
+          where: { id: resourceId },
+          select: { clienteId: true }, // Asumimos que todos los modelos protegidos tienen este campo
         });
-      }
 
-      return next();
+        if (!resource) {
+          return res.status(404).json({ error: "Recurso no encontrado" });
+        }
+
+        // --- LA COMPARACIÓN CLAVE 🔐 ---
+        if (resource.clienteId !== req.guest.id) {
+          return res.status(403).json({
+            error: "Acceso Prohibido",
+            message: "No puedes acceder a datos que no te pertenecen.",
+          });
+        }
+
+        return next();
+
+      } catch (error) {
+        console.error(`Error en ensureOwnership para modelo ${model}:`, error);
+        return res.status(500).json({ error: "Error interno al verificar permisos" });
+      }
     }
 
     return res.status(401).json({ error: "Identidad desconocida" });

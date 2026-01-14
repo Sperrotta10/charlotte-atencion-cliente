@@ -55,6 +55,11 @@ export const createSession = async (req, res) => {
         });
     }
 
+    // Error cuando excede el límite de sesiones por mesa
+    if (error.code === 'TABLE_CAPACITY_EXCEEDED') {
+      return res.status(429).json({ error: error.message });
+    }
+
     console.error('Error creando sesión:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }

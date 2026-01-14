@@ -87,6 +87,20 @@ export const createSession = async ({ table_id, customer_name, customer_dni }) =
     throw error;
   }
 
+  // 3. Verificamos que la mesa no exceda su capacidad máxima
+  const activeClientsCount = await prisma.clienteTemporal.count({
+    where: { 
+      tableId: table_id, 
+      status: 'ACTIVE' 
+    },
+  });
+
+  if (activeClientsCount >= table.capacity) {
+    const error = new Error('La mesa ha alcanzado su capacidad máxima');
+    error.code = 'TABLE_CAPACITY_EXCEEDED';
+    throw error;
+  }
+
   // 3. Solicitar token JWT al módulo de seguridad
   const jwtPayload = {
     table_id,

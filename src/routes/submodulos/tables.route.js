@@ -14,7 +14,7 @@ router.post('/verify-qr', tablesController.verifyQr);
 router.post('/', verifyStaff('Table_atc', 'Create'), tablesController.createTable);
 
 // GET /tables/:id - Obtener mesa por ID (Staff/Gerente con permiso READ)
-router.get('/:id', verifyStaff('Table_atc', 'Read'), tablesController.getTableById);
+router.get('/:id', tablesController.getTableById);
 
 // PATCH /tables/:id - Actualizar Estado Mesa (Maître/Staff con permiso UPDATE)
 router.patch('/:id', verifyStaff('Table_atc', 'Update'), tablesController.updateTableStatus);

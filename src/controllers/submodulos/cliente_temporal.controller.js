@@ -108,6 +108,7 @@ export const updateClientStatus = async (req, res) => {
       return res.status(400).json({ errors: bodyValidation.error.format() });
     }
 
+    /*
     // 3. Validar permisos según tipo de usuario
     if (bodyValidation.data.status) {
         if (req.userType === 'GUEST') {
@@ -135,6 +136,7 @@ export const updateClientStatus = async (req, res) => {
         });
       }
     }
+    */
 
     // 4. Llamar al servicio de negocio
     const result = await clienteTemporalService.updateClientStatus(

@@ -7,6 +7,9 @@ const router = Router();
 // GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI) (KPI/Gerente - Staff READ)
 router.get('/', verifyGuestOrStaff(), clienteTemporalController.getClients);
 
+// GET /clients/active - Obtener Clientes Activos con Consumo Actual (Monitor de Sesiones)
+router.get('/active', clienteTemporalController.getActiveClients);
+
 // POST /clients - Crear Sesión (Login)
 router.post('/', clienteTemporalController.createSession);
 

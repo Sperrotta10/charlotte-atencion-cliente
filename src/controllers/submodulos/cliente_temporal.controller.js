@@ -1,5 +1,6 @@
 import * as clienteTemporalService from '../../services/submodulos/cliente_temporal.service.js';
 import { createSessionSchema, clientIdParamSchema, updateStatusSchema, getClientsQuerySchema } from '../../schemas/submodulos/cliente_temporal.schema.js';
+import { prisma } from '../../db/client.js';
 
 // GET /clients - Obtener Clientes (Monitor de Sesiones y Fuente de Datos KPI)
 export const getClients = async (req, res) => {
@@ -19,6 +20,75 @@ export const getClients = async (req, res) => {
   } catch (error) {
     console.error('Error obteniendo clientes:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const getActiveClients = async (req, res) => {
+  try {
+    const clients = await prisma.clienteTemporal.findMany({
+      where: {
+        // Buscamos clientes que estén comiendo (ACTIVE) o pidiendo la cuenta (BILL_REQUESTED)
+        status: { in: ['ACTIVE', 'BILL_REQUESTED'] }
+      },
+      include: {
+        table: {
+          select: { tableNumber: true }
+        },
+        // INCLUIMOS COMANDAS E ITEMS PARA CALCULAR EL TOTAL EN TIEMPO REAL
+        comandas: {
+          where: {
+            status: { not: 'CANCELLED' } // Ignoramos órdenes canceladas
+          },
+          include: {
+            items: true // Traemos los items para sumar (unitPrice * quantity)
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'asc' // Ordenamos por antigüedad (los más viejos arriba)
+      }
+    });
+
+    // Procesamos cada cliente para calcular su "currentConsumption"
+    const clientsWithConsumption = clients.map(client => {
+      
+      // 1. Calcular consumo sumando items de todas las comandas no canceladas
+      const currentConsumption = client.comandas.reduce((totalComandas, comanda) => {
+        const totalItems = comanda.items.reduce((sum, item) => {
+            // Aseguramos que sea número por si acaso
+            return sum + (Number(item.unitPrice) * item.quantity);
+        }, 0);
+        return totalComandas + totalItems;
+      }, 0);
+
+      // 2. Determinar si es "Fantasma" desde el backend (Opcional, pero útil)
+      // Si lleva más de 30 mins y consumo 0.
+      const diffMs = new Date() - new Date(client.createdAt);
+      const diffMins = Math.floor(diffMs / 60000);
+      const isGhost = diffMins > 50 && currentConsumption === 0;
+
+      return {
+        id: client.id,
+        customerName: client.customerName,
+        customerDni: client.customerDni,
+        table: client.table,
+        createdAt: client.createdAt,
+        status: client.status,
+        
+        // Enviamos el total calculado en vivo, NO el de la BD (que suele ser 0 hasta el final)
+        totalAmount: currentConsumption, // Sobrescribimos o usamos un campo nuevo
+        
+        // Info extra útil para el frontend
+        ordersCount: client.comandas.length, 
+        isGhostCandidate: isGhost 
+      };
+    });
+
+    return res.json({ success: true, data: clientsWithConsumption });
+
+  } catch (error) {
+    console.error("Error obteniendo clientes activos:", error);
+    return res.status(500).json({ error: "Error al obtener sesiones activas" });
   }
 };
 

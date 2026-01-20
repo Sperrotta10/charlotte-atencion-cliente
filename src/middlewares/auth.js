@@ -56,45 +56,43 @@ export const verifyGuestOrStaff = () => {
 
 export const ensureOwnership = (model) => {
   return async (req, res, next) => {
-    // 1. Si es STAFF, tiene acceso VIP (pase directo)
+    // 1. Si es STAFF, tiene acceso VIP
     if (req.userType === "STAFF") {
       return next();
     }
 
     // 2. Si es GUEST, verificamos propiedad
     if (req.userType === "GUEST") {
-      let resourceId = req.params.id; // Asumimos que el ID viene en la URL
+      let resourceId = req.params.id; 
 
       if (NUMERIC_ID_MODELS.includes(model)) {
-        // Intentamos convertir a número
         const parsedId = parseInt(resourceId, 10);
-        
-        // Validación de seguridad: Si no es un número válido, rechazamos antes de consultar a Prisma
         if (isNaN(parsedId)) {
           return res.status(400).json({ 
             error: "ID inválido", 
             message: `El ID para ${model} debe ser numérico.` 
           });
         }
-        
         resourceId = parsedId;
       }
 
-      // Buscamos el recurso para ver de quién es
-      // Usamos prisma[model] dinámicamente
       try {
-        // Buscamos el recurso dinámicamente
+        // --- SELECCIÓN DINÁMICA DEL CAMPO PROPIETARIO ---
+        const ownerField = model === 'clienteTemporal' ? 'id' : 'clienteId';
+
+        // Buscamos el recurso seleccionando solo el campo necesario
         const resource = await prisma[model].findUnique({
           where: { id: resourceId },
-          select: { clienteId: true }, // Asumimos que todos los modelos protegidos tienen este campo
+          select: { [ownerField]: true }, // Usamos corchetes para usar la variable como clave
         });
 
         if (!resource) {
           return res.status(404).json({ error: "Recurso no encontrado" });
         }
 
-        // --- LA COMPARACIÓN CLAVE 🔐 ---
-        if (resource.clienteId !== req.guest.id) {
+        // --- COMPARACIÓN DINÁMICA 🔐 ---
+        // Comparamos el campo dinámico (id o clienteId) con el ID del usuario en sesión
+        if (resource[ownerField] !== req.guest.id) {
           return res.status(403).json({
             error: "Acceso Prohibido",
             message: "No puedes acceder a datos que no te pertenecen.",

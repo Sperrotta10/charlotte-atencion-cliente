@@ -219,9 +219,17 @@ export const updateClientStatus = async (id, data) => {
   // Si envían un monto nuevo, usamos ese. Si no, usamos el que ya estaba en BD.
   const finalAmount = data.total_amount !== undefined ? data.total_amount : cliente.totalAmount;
 
+  /*
   // Validación: No permitir pedir cuenta o cerrar si el total es 0 o menor
   if ((data.status === 'BILL_REQUESTED' || data.status === 'CLOSED') && finalAmount <= 0) {
     const error = new Error('El monto total debe ser mayor a 0 para pedir cuenta o cerrar.');
+    error.code = 'ZERO_AMOUNT_ERROR';
+    throw error;
+  }
+  */
+
+  if (data.status === 'BILL_REQUESTED' && finalAmount <= 0) {
+    const error = new Error('No hay monto pendiente para pedir la cuenta.');
     error.code = 'ZERO_AMOUNT_ERROR';
     throw error;
   }

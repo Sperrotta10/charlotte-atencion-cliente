@@ -110,11 +110,22 @@ export const updateClientStatus = async (req, res) => {
 
     // 3. Validar permisos según tipo de usuario
     if (bodyValidation.data.status) {
-      if (req.userType === 'GUEST' && bodyValidation.data.status !== 'BILL_REQUESTED') {
-        return res.status(403).json({ 
-          error: 'Acceso denegado', 
-          message: 'Los invitados solo pueden solicitar la cuenta (BILL_REQUESTED)' 
-        });
+        if (req.userType === 'GUEST') {
+          // Excepción: Si el monto es 0 (canceló todo), permitimos CLOSED
+          // Asumiendo que finalAmount ya lo calculaste o validaste arriba
+          const isZeroAmount = (bodyValidation.data.total_amount === 0);
+
+          if (bodyValidation.data.status === 'CLOSED' && !isZeroAmount) {
+              return res.status(403).json({ 
+                  error: 'Acceso denegado', 
+                  message: 'No puedes cerrar una mesa con deuda pendiente. Solicita la cuenta.' 
+              });
+          }
+          
+          // Si no es 0 y no es BILL_REQUESTED, bloquear
+          if (bodyValidation.data.status !== 'BILL_REQUESTED' && bodyValidation.data.status !== 'CLOSED') {
+              return res.status(403).json({ error: 'Acceso denegado' });
+          }
       }
 
       if (req.userType === 'STAFF' && bodyValidation.data.status !== 'CLOSED') {

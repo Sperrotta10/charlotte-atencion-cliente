@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', verifyGuestOrStaff(), clienteTemporalController.getClients);
 
 // GET /clients/active - Obtener Clientes Activos con Consumo Actual (Monitor de Sesiones)
-router.get('/active', clienteTemporalController.getActiveClients);
+router.get('/active', verifyGuestOrStaff(), clienteTemporalController.getActiveClients);
 
 // POST /clients - Crear Sesión (Login)
 router.post('/', clienteTemporalController.createSession);

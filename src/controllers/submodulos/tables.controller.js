@@ -115,6 +115,10 @@ export const verifyQr = async (req, res) => {
       return res.status(409).json({ error: error.message });
     }
 
+    if (error.code === 'CAPACITY_CONFLICT') {
+      return res.status(409).json({ error: error.message, meta: error.meta });
+    }
+
     console.error('Error verificando QR:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
@@ -141,6 +145,7 @@ export const updateTableStatus = async (req, res) => {
     const updated = await tablesService.updateTableStatus({
       id: idValidation.data.id,
       currentStatus: bodyValidation.data.currentStatus,
+      capacity: bodyValidation.data.capacity,
     });
 
     // 4. Formatear salida según especificación

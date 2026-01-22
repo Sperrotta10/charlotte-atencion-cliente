@@ -73,7 +73,16 @@ export const updateTableStatusSchema = z.object({
     required_error: 'El currentStatus es requerido',
     invalid_type_error: 'El currentStatus debe ser AVAILABLE, OUT_OF_SERVICE u OCCUPIED',
     errorMap: () => ({ message: 'El currentStatus debe ser AVAILABLE, OUT_OF_SERVICE u OCCUPIED' }),
-  }),
+  }).optional(),
+  capacity: z
+    .number({
+      required_error: 'La capacidad es requerida',
+      invalid_type_error: 'La capacidad debe ser un número',
+    })
+    .int()
+    .min(2, { message: 'La capacidad mínima de la mesa es 2 personas' })
+    .max(6, { message: 'La capacidad máxima de la mesa es 6 personas' })
+    .optional(),
 });
 
 // Esquema de validación para el parámetro ID en la ruta

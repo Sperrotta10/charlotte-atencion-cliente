@@ -195,7 +195,7 @@ export const verifyQr = async ({ qr_uuid }) => {
 };
 
 // Lógica de negocio para actualizar estado de mesa
-export const updateTableStatus = async ({ id, currentStatus }) => {
+export const updateTableStatus = async ({ id, currentStatus, capacity }) => {
   // 1. Verificar que la mesa existe
   const table = await prisma.table.findUnique({
     where: { id },
@@ -230,7 +230,7 @@ export const updateTableStatus = async ({ id, currentStatus }) => {
     }
   }
 
-  // 3. CASO B (NUEVO): Si pasa a OUT_OF_SERVICE, validar que esté vacía
+  // 2. CASO B (NUEVO): Si pasa a OUT_OF_SERVICE, validar que esté vacía
   if (currentStatus === 'OUT_OF_SERVICE') {
     if (sesionesActivas > 0) {
       const error = new Error('No se puede inhabilitar una mesa con clientes activos. Espere a que se libere.');
@@ -239,11 +239,23 @@ export const updateTableStatus = async ({ id, currentStatus }) => {
     }
   }
 
+  // Si hay gente sentada, la nueva capacidad no puede ser menor a la cantidad de gente
+  if (sesionesActivas > 0 && capacity !== undefined) {
+      if (capacity < sesionesActivas) {
+          const error = new Error(`No se puede reducir la capacidad a ${capacity}. Hay ${sesionesActivas} clientes activos en la mesa.`);
+          error.code = 'CAPACITY_CONFLICT';
+          // Metadata útil para el frontend
+          error.meta = { required: sesionesActivas, provided: capacity };
+          throw error;
+      }
+  }
+
   // 3. Actualizar el estado de la mesa
   const updatedTable = await prisma.table.update({
     where: { id },
     data: {
       currentStatus,
+      capacity,
     },
   });
 

@@ -7,32 +7,75 @@
   },
   "tags": [
     {
-      "name": "Raíz"
+      "name" : "External: Auth"
     },
     {
-      "name": "Raíz/tables"
+      "name": "tables"
     },
     {
-      "name": "Raíz/cliente_temporal"
+      "name": "cliente_temporal"
     },
     {
-      "name": "Raíz/comanda"
+      "name": "comanda"
     },
     {
-      "name": "Raíz/service_request"
-    },
-    {
-      "name": "Raíz/example"
+      "name": "service_request"
     }
   ],
   "paths": {
+    "/api/seguridad/auth/login": {
+      "post": {
+        "tags": ["External: Auth"],
+        "summary": "Login (Módulo Seguridad)",
+        "description": "Este endpoint pertenece al microservicio de seguridad. Se documenta aquí para facilitar la obtención del token de pruebas.",
+        "servers": [
+          {
+            "url": "https://charlotte-seguridad.onrender.com",
+            "description": "Producción Seguridad"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "santiago.p@charlotte.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "SuperSeguraPassword"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/atencion-cliente/tables/verify-qr": {
       "post": {
         "summary": "Verificar QR de la mesa",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/tables"
+          "tables"
         ],
         "parameters": [],
         "requestBody": {
@@ -50,7 +93,7 @@
                 ]
               },
               "example": {
-                "qr_uuid": "qr-mesa-10"
+                "qr_uuid": "00c02131-7740-411b-a192-92f8fbff64e8"
               }
             }
           }
@@ -107,9 +150,34 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Mesa llena"
+                }
+              }
+            }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/atencion-cliente/tables": {
@@ -118,14 +186,14 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/tables"
+          "tables"
         ],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "1",
             "schema": {
               "type": "string"
@@ -135,7 +203,7 @@
             "name": "limit",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "10",
             "schema": {
               "type": "string"
@@ -402,14 +470,18 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "post": {
         "summary": "Crear una mesa",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/tables"
+          "tables"
         ],
         "parameters": [],
         "requestBody": {
@@ -548,18 +620,33 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
-    "/api/v1/atencion-cliente/tables/12": {
+    "/api/v1/atencion-cliente/tables/{id}": {
       "get": {
         "summary": "obtener mesa por id",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/tables"
+          "tables"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 15,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -605,7 +692,8 @@
                   "active_sessions": 1
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "",
@@ -626,7 +714,8 @@
                   "error": "Mesa no encontrada"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "500": {
             "description": "",
@@ -647,21 +736,35 @@
                   "error": "Error interno del servidor"
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
-      }
-    },
-    "/api/v1/atencion-cliente/tables/2": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
       "patch": {
         "summary": "Actualizar la mesa",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/tables"
+          "tables"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 3,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -670,14 +773,19 @@
                 "properties": {
                   "currentStatus": {
                     "type": "string"
+                  },
+                  "capacity": {
+                    "type": "integer"
                   }
                 },
                 "required": [
-                  "currentStatus"
+                  "currentStatus",
+                  "capacity"
                 ]
               },
               "example": {
-                "currentStatus": "OCCUPIED"
+                "currentStatus": "AVAILABLE",
+                "capacity": 4
               }
             }
           }
@@ -722,7 +830,8 @@
                   "current_status": "OCCUPIED"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "",
@@ -774,7 +883,8 @@
                   }
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "",
@@ -795,21 +905,35 @@
                   "error": "Mesa no encontrada"
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
-      }
-    },
-    "/api/v1/atencion-cliente/tables/1": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
       "delete": {
         "summary": "Eliminar una mesa",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/tables"
+          "tables"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -832,10 +956,87 @@
                 },
                 "example": {
                   "success": true,
-                  "message": "Mesa 22 eliminada correctamente del inventario."
+                  "message": "Mesa 3 eliminada correctamente."
                 }
               }
-            }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "error": "Token inválido",
+                  "message": "Su sesión ha expirado o es inválida."
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "error": "Acceso Denegado",
+                  "message": "No tiene permisos para realizar esta acción sobre este recurso."
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Mesa no encontrada"
+                }
+              }
+            },
+            "headers": {}
           },
           "409": {
             "description": "",
@@ -856,10 +1057,180 @@
                   "error": "No se puede eliminar una mesa ocupada. Libérela primero."
                 }
               }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/atencion-cliente/tables/{id}/restore": {
+      "patch": {
+        "summary": "Restaurar la mesa",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "tables"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 3,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tableNumber": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "tableNumber"
+                ]
+              },
+              "example": {
+                "tableNumber": 3
+              }
             }
           }
         },
-        "security": []
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "tableNumber": {
+                          "type": "integer"
+                        },
+                        "qrUuid": {
+                          "type": "string"
+                        },
+                        "capacity": {
+                          "type": "integer"
+                        },
+                        "currentStatus": {
+                          "type": "string"
+                        },
+                        "isActive": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "tableNumber",
+                        "qrUuid",
+                        "capacity",
+                        "currentStatus",
+                        "isActive"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "message": "Mesa restaurada correctamente con el número 3.",
+                  "data": {
+                    "id": 3,
+                    "tableNumber": 3,
+                    "qrUuid": "d10b5e82-b752-4fbc-9a0a-f3352932ea93",
+                    "capacity": 2,
+                    "currentStatus": "AVAILABLE",
+                    "isActive": true
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "error": "No autorizado",
+                  "message": "Token de autenticación no proporcionado."
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "Mesa no encontrada"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/atencion-cliente/clients": {
@@ -868,7 +1239,7 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/cliente_temporal"
+          "cliente_temporal"
         ],
         "parameters": [],
         "requestBody": {
@@ -894,9 +1265,9 @@
                 ]
               },
               "example": {
-                "table_id": 6,
-                "customer_name": "Marco",
-                "customer_dni": "12345678"
+                "table_id": 67,
+                "customer_name": "Rodrigo",
+                "customer_dni": "V-31014592"
               }
             }
           }
@@ -1001,21 +1372,25 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "get": {
         "summary": "obtener clientes",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/cliente_temporal"
+          "cliente_temporal"
         ],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "1",
             "schema": {
               "type": "string"
@@ -1025,7 +1400,7 @@
             "name": "limit",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "20",
             "schema": {
               "type": "string"
@@ -1036,7 +1411,7 @@
             "in": "query",
             "description": "",
             "required": false,
-            "example": "CLOSED",
+            "example": "ACTIVE",
             "schema": {
               "type": "string"
             }
@@ -1065,7 +1440,7 @@
             "name": "min_amount",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "50",
             "schema": {
               "type": "string"
@@ -1213,18 +1588,33 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
-    "/api/v1/atencion-cliente/clients/2": {
+    "/api/v1/atencion-cliente/clients/{id}": {
       "get": {
         "summary": "Obtener cliente por id",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/cliente_temporal"
+          "cliente_temporal"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 10,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -1285,7 +1675,30 @@
                   "closed_at": "2025-12-21T04:08:06.198Z"
                 }
               }
-            }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                },
+                "example": {
+                  "message": "Solo puedes ver tu perfil"
+                }
+              }
+            },
+            "headers": {}
           },
           "404": {
             "description": "",
@@ -1306,7 +1719,8 @@
                   "error": "Cliente no encontrado"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "500": {
             "description": "",
@@ -1327,21 +1741,37 @@
                   "error": "Error interno del servidor"
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
-    "/api/v1/atencion-cliente/clients/4": {
+    "/api/v1/atencion-cliente/clients/{51}": {
       "patch": {
         "summary": "Actualizar cliente",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/cliente_temporal"
+          "cliente_temporal"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "51",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": 51,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1422,7 +1852,8 @@
                   }
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "",
@@ -1436,7 +1867,9 @@
                       "properties": {
                         "_errors": {
                           "type": "array",
-                          "items": {}
+                          "items": {
+                            "type": "string"
+                          }
                         },
                         "status": {
                           "type": "object",
@@ -1474,10 +1907,293 @@
                   }
                 }
               }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/atencion-cliente/clients/active": {
+      "get": {
+        "summary": "obtener clientes fantasmas",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "cliente_temporal"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "customerName": {
+                            "type": "string"
+                          },
+                          "customerDni": {
+                            "type": "string"
+                          },
+                          "table": {
+                            "type": "object",
+                            "properties": {
+                              "tableNumber": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "tableNumber"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "totalAmount": {
+                            "type": "integer"
+                          },
+                          "ordersCount": {
+                            "type": "integer"
+                          },
+                          "isGhostCandidate": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "customerName",
+                          "customerDni",
+                          "table",
+                          "createdAt",
+                          "status",
+                          "totalAmount",
+                          "ordersCount",
+                          "isGhostCandidate"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "id": 23,
+                      "customerName": "Cliente Mesa 19",
+                      "customerDni": "V-4350347",
+                      "table": {
+                        "tableNumber": 19
+                      },
+                      "createdAt": "2026-01-14T17:00:03.794Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 30,
+                      "ordersCount": 1,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 24,
+                      "customerName": "Cliente Mesa 20",
+                      "customerDni": "V-5770936",
+                      "table": {
+                        "tableNumber": 20
+                      },
+                      "createdAt": "2026-01-14T17:00:04.381Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 30,
+                      "ordersCount": 1,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 25,
+                      "customerName": "Cliente Mesa 21",
+                      "customerDni": "V-1021723",
+                      "table": {
+                        "tableNumber": 21
+                      },
+                      "createdAt": "2026-01-14T17:00:04.635Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 30,
+                      "ordersCount": 1,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 26,
+                      "customerName": "Cliente Mesa 1",
+                      "customerDni": "V-4900680",
+                      "table": {
+                        "tableNumber": 1
+                      },
+                      "createdAt": "2026-01-14T17:00:04.881Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 60,
+                      "ordersCount": 2,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 27,
+                      "customerName": "Cliente Mesa 2",
+                      "customerDni": "V-9432446",
+                      "table": {
+                        "tableNumber": 2
+                      },
+                      "createdAt": "2026-01-14T17:00:05.158Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 60,
+                      "ordersCount": 2,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 29,
+                      "customerName": "Cliente Mesa 4",
+                      "customerDni": "V-4486110",
+                      "table": {
+                        "tableNumber": 4
+                      },
+                      "createdAt": "2026-01-14T17:00:05.649Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 60,
+                      "ordersCount": 2,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 30,
+                      "customerName": "Cliente Mesa 5",
+                      "customerDni": "V-8478645",
+                      "table": {
+                        "tableNumber": 5
+                      },
+                      "createdAt": "2026-01-14T17:00:05.894Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 60,
+                      "ordersCount": 2,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 31,
+                      "customerName": "Cliente Mesa 6",
+                      "customerDni": "V-2045077",
+                      "table": {
+                        "tableNumber": 6
+                      },
+                      "createdAt": "2026-01-14T17:00:06.145Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 30,
+                      "ordersCount": 1,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 33,
+                      "customerName": "santaigo",
+                      "customerDni": "31014123",
+                      "table": {
+                        "tableNumber": 2
+                      },
+                      "createdAt": "2026-01-14T17:42:55.571Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 0,
+                      "ordersCount": 0,
+                      "isGhostCandidate": true
+                    },
+                    {
+                      "id": 34,
+                      "customerName": "Rodrigo",
+                      "customerDni": "31014592",
+                      "table": {
+                        "tableNumber": 5
+                      },
+                      "createdAt": "2026-01-15T02:28:30.924Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 28,
+                      "ordersCount": 1,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 35,
+                      "customerName": "Anibal Osuna",
+                      "customerDni": "3234423",
+                      "table": {
+                        "tableNumber": 1
+                      },
+                      "createdAt": "2026-01-18T20:16:58.247Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 0,
+                      "ordersCount": 0,
+                      "isGhostCandidate": true
+                    },
+                    {
+                      "id": 37,
+                      "customerName": "Alfredo Monagas",
+                      "customerDni": "31498030",
+                      "table": {
+                        "tableNumber": 11
+                      },
+                      "createdAt": "2026-01-19T18:22:55.044Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 253,
+                      "ordersCount": 5,
+                      "isGhostCandidate": false
+                    },
+                    {
+                      "id": 38,
+                      "customerName": "Manuel Nava",
+                      "customerDni": "30822007",
+                      "table": {
+                        "tableNumber": 11
+                      },
+                      "createdAt": "2026-01-20T15:36:22.744Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 0,
+                      "ordersCount": 0,
+                      "isGhostCandidate": true
+                    },
+                    {
+                      "id": 43,
+                      "customerName": "Aura 2000",
+                      "customerDni": "31200562",
+                      "table": {
+                        "tableNumber": 15
+                      },
+                      "createdAt": "2026-01-21T16:37:46.561Z",
+                      "status": "ACTIVE",
+                      "totalAmount": 114.99,
+                      "ordersCount": 1,
+                      "isGhostCandidate": false
+                    }
+                  ]
+                }
+              }
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/atencion-cliente/comandas": {
@@ -1486,7 +2202,7 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/comanda"
+          "comanda"
         ],
         "parameters": [],
         "requestBody": {
@@ -1504,7 +2220,7 @@
                       "type": "object",
                       "properties": {
                         "product_id": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "quantity": {
                           "type": "integer"
@@ -1534,16 +2250,16 @@
                 "notes": "El cliente es alérgico al brocoli",
                 "items": [
                   {
-                    "product_id": 206,
+                    "product_id": "d4f1aa76-bd68-417e-bde1-67fba5d03f71",
                     "quantity": 2,
                     "unit_price": 12.5,
-                    "special_instructions": "Bien cocido"
+                    "special_instructions": "Test conexion modulo cocina 1"
                   },
                   {
-                    "product_id": 556,
+                    "product_id": "a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
                     "quantity": 1,
                     "unit_price": 3,
-                    "special_instructions": "Sin hielo"
+                    "special_instructions": "Test conexion modulo cocina 2"
                   }
                 ]
               }
@@ -1559,7 +2275,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "integer"
+                      "type": "string"
                     },
                     "status": {
                       "type": "string"
@@ -1571,7 +2287,7 @@
                   ]
                 },
                 "example": {
-                  "id": 12,
+                  "id": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
                   "status": "PENDING"
                 }
               }
@@ -1660,7 +2376,7 @@
                         "_errors": [],
                         "product_id": {
                           "_errors": [
-                            "Invalid input: expected number, received boolean"
+                            "Invalid input: expected string, received boolean"
                           ]
                         }
                       },
@@ -1672,21 +2388,25 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "get": {
         "summary": "obtener ordenes",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/comanda"
+          "comanda"
         ],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "1",
             "schema": {
               "type": "string"
@@ -1696,7 +2416,7 @@
             "name": "limit",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "10",
             "schema": {
               "type": "string"
@@ -1706,7 +2426,7 @@
             "name": "status",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "PENDING",
             "schema": {
               "type": "string"
@@ -1716,8 +2436,8 @@
             "name": "table_id",
             "in": "query",
             "description": "",
-            "required": true,
-            "example": "1",
+            "required": false,
+            "example": "2",
             "schema": {
               "type": "string"
             }
@@ -1726,8 +2446,8 @@
             "name": "date_from",
             "in": "query",
             "description": "",
-            "required": true,
-            "example": "2025-12-22T13:03:52.534Z",
+            "required": false,
+            "example": "2026-01-14T17:00:07.297Z",
             "schema": {
               "type": "string"
             }
@@ -1736,8 +2456,8 @@
             "name": "date_to",
             "in": "query",
             "description": "",
-            "required": true,
-            "example": "2025-12-22T19:00:22.982Z",
+            "required": false,
+            "example": "2026-01-14T17:00:10.895Z",
             "schema": {
               "type": "string"
             }
@@ -1760,19 +2480,21 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "type": "integer"
+                            "type": "string"
                           },
                           "status": {
                             "type": "string"
                           },
                           "notes": {
-                            "type": "null"
+                            "type": "string",
+                            "nullable": true
                           },
                           "sent_at": {
                             "type": "string"
                           },
                           "delivered_at": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "table_number": {
                             "type": "integer"
@@ -1841,48 +2563,208 @@
                   "success": true,
                   "data": [
                     {
-                      "id": 2,
-                      "status": "DELIVERED",
-                      "notes": null,
-                      "sent_at": "2025-12-22T12:59:29.251Z",
-                      "delivered_at": "2025-12-24T01:51:10.083Z",
-                      "table_number": 1,
+                      "id": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                      "status": "PENDING",
+                      "notes": "El cliente es alérgico al brocoli",
+                      "sent_at": "2026-01-15T02:28:37.176Z",
+                      "delivered_at": null,
+                      "table_number": 5,
                       "items": [
                         {
-                          "product_name": "Producto #101",
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
                           "quantity": 2,
-                          "special_instructions": "Sin salsas"
+                          "special_instructions": "Test conexion modulo cocina 1"
                         },
                         {
-                          "product_name": "Producto #205",
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
                           "quantity": 1,
-                          "special_instructions": "Bien fria"
+                          "special_instructions": "Test conexion modulo cocina 2"
                         }
                       ]
                     },
                     {
-                      "id": 1,
+                      "id": "0f2620d2-7619-4666-97d0-cea6754b1833",
                       "status": "DELIVERED",
                       "notes": null,
-                      "sent_at": "2025-12-22T12:56:47.858Z",
-                      "delivered_at": "2025-12-22T17:11:17.063Z",
-                      "table_number": 1,
+                      "sent_at": "2026-01-14T17:00:12.516Z",
+                      "delivered_at": "2026-01-14T17:00:12.516Z",
+                      "table_number": 7,
                       "items": [
                         {
-                          "product_name": "Producto #101",
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
                           "quantity": 2,
-                          "special_instructions": "Sin salsas"
+                          "special_instructions": "Bien cocido"
                         },
                         {
-                          "product_name": "Producto #205",
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
                           "quantity": 1,
-                          "special_instructions": "Bien fria"
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "d339d325-c0ef-419f-827b-497d89f5f8ad",
+                      "status": "DELIVERED",
+                      "notes": "Sin cebolla por favor",
+                      "sent_at": "2026-01-14T17:00:12.111Z",
+                      "delivered_at": "2026-01-14T17:00:12.111Z",
+                      "table_number": 7,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "20f91f3c-2f7e-4d4a-8bc6-d8b98f7de238",
+                      "status": "COOKING",
+                      "notes": "Sin cebolla por favor",
+                      "sent_at": "2026-01-14T17:00:11.707Z",
+                      "delivered_at": null,
+                      "table_number": 6,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "2db065fb-02b3-44e1-b8e6-aad43e69caa5",
+                      "status": "DELIVERED",
+                      "notes": null,
+                      "sent_at": "2026-01-14T17:00:11.305Z",
+                      "delivered_at": "2026-01-14T17:00:11.305Z",
+                      "table_number": 5,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "d3f5a62f-517f-4d92-b81a-e58ddc38116a",
+                      "status": "PENDING",
+                      "notes": "Sin cebolla por favor",
+                      "sent_at": "2026-01-14T17:00:10.895Z",
+                      "delivered_at": null,
+                      "table_number": 5,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "c10b30d5-55bd-4440-bd13-0435904e5945",
+                      "status": "COOKING",
+                      "notes": null,
+                      "sent_at": "2026-01-14T17:00:10.487Z",
+                      "delivered_at": null,
+                      "table_number": 4,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "6b410916-e9f1-4ce1-8514-d7c2f5eaadef",
+                      "status": "COOKING",
+                      "notes": "Sin cebolla por favor",
+                      "sent_at": "2026-01-14T17:00:10.080Z",
+                      "delivered_at": null,
+                      "table_number": 4,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "26591a47-bd62-4606-a3a4-244fcc21766b",
+                      "status": "COOKING",
+                      "notes": null,
+                      "sent_at": "2026-01-14T17:00:09.680Z",
+                      "delivered_at": null,
+                      "table_number": 3,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "8de36cbe-bf12-4d9f-be3c-7eb64cefe554",
+                      "status": "COOKING",
+                      "notes": "Sin cebolla por favor",
+                      "sent_at": "2026-01-14T17:00:09.282Z",
+                      "delivered_at": null,
+                      "table_number": 3,
+                      "items": [
+                        {
+                          "product_name": "Producto #a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                          "quantity": 2,
+                          "special_instructions": "Bien cocido"
+                        },
+                        {
+                          "product_name": "Producto #d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                          "quantity": 1,
+                          "special_instructions": "Con mucho hielo"
                         }
                       ]
                     }
                   ],
                   "meta": {
-                    "total": 2,
+                    "total": 17,
                     "page": 1,
                     "limit": 10
                   }
@@ -1891,18 +2773,33 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
-    "/api/v1/atencion-cliente/comandas/3": {
+    "/api/v1/atencion-cliente/comandas/{id}": {
       "get": {
         "summary": "obtener orden",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/comanda"
+          "comanda"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "8de36cbe-bf12-4d9f-be3c-7eb64cefe554",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -1918,7 +2815,7 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "clienteId": {
                           "type": "integer"
@@ -1927,13 +2824,13 @@
                           "type": "string"
                         },
                         "notes": {
-                          "type": "null"
+                          "type": "string"
                         },
                         "sentAt": {
                           "type": "string"
                         },
                         "deliveredAt": {
-                          "type": "string"
+                          "type": "null"
                         },
                         "items": {
                           "type": "array",
@@ -1941,13 +2838,13 @@
                             "type": "object",
                             "properties": {
                               "id": {
-                                "type": "integer"
+                                "type": "string"
                               },
                               "comandaId": {
-                                "type": "integer"
+                                "type": "string"
                               },
                               "productId": {
-                                "type": "integer"
+                                "type": "string"
                               },
                               "quantity": {
                                 "type": "integer"
@@ -2033,45 +2930,73 @@
                 "example": {
                   "success": true,
                   "data": {
-                    "id": 2,
-                    "clienteId": 1,
-                    "status": "DELIVERED",
-                    "notes": null,
-                    "sentAt": "2025-12-22T12:59:29.251Z",
-                    "deliveredAt": "2025-12-24T01:51:10.083Z",
+                    "id": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                    "clienteId": 34,
+                    "status": "PENDING",
+                    "notes": "El cliente es alérgico al brocoli",
+                    "sentAt": "2026-01-15T02:28:37.176Z",
+                    "deliveredAt": null,
                     "items": [
                       {
-                        "id": 3,
-                        "comandaId": 2,
-                        "productId": 101,
+                        "id": "250a012f-a5c5-4eaf-a163-d5c71cd9c9a2",
+                        "comandaId": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                        "productId": "d4f1aa76-bd68-417e-bde1-67fba5d03f71",
                         "quantity": 2,
                         "unitPrice": 12.5,
-                        "specialInstructions": "Sin salsas"
+                        "specialInstructions": "Test conexion modulo cocina 1"
                       },
                       {
-                        "id": 4,
-                        "comandaId": 2,
-                        "productId": 205,
+                        "id": "728aab71-4d93-4539-b782-40444e18cf29",
+                        "comandaId": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                        "productId": "a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
                         "quantity": 1,
-                        "unitPrice": 5,
-                        "specialInstructions": "Bien fria"
+                        "unitPrice": 3,
+                        "specialInstructions": "Test conexion modulo cocina 2"
                       }
                     ],
                     "cliente": {
-                      "id": 1,
-                      "tableId": 1,
-                      "sessionToken": "token123",
-                      "customerName": "Juan Perez",
-                      "customerDni": "12345678",
+                      "id": 34,
+                      "tableId": 5,
+                      "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZV9pZCI6NSwiY3VzdG9tZXJfbmFtZSI6IlJvZHJpZ28iLCJjdXN0b21lcl9kbmkiOiIzMTAxNDU5MiIsInJvbGUiOiJHVUVTVCIsImlhdCI6MTc2ODQ0NDExMCwiZXhwIjoxNzY4NTMwNTEwfQ.zV2qkuxZnsOQJAed8UsvKiFCkNEznJx-YFwZI3mi79c",
+                      "customerName": "Rodrigo",
+                      "customerDni": "31014592",
                       "status": "ACTIVE",
                       "totalAmount": 0,
-                      "createdAt": "2025-12-16T15:36:50.619Z",
+                      "createdAt": "2026-01-15T02:28:30.924Z",
                       "closedAt": null
                     }
                   }
                 }
               }
-            }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "error": "Acceso Prohibido",
+                  "message": "No puedes acceder a datos que no te pertenecen."
+                }
+              }
+            },
+            "headers": {}
           },
           "404": {
             "description": "",
@@ -2080,64 +3005,47 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message"
-                  ]
-                },
-                "example": {
-                  "success": false,
-                  "message": "Comanda no encontrada"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
                     "error": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "message",
                     "error"
                   ]
                 },
                 "example": {
-                  "message": "Error al obtener",
-                  "error": "\nInvalid `prisma.comanda.findUnique()` invocation:\n\n{\n  where: {\n+   id: Int\n  },\n  include: {\n    items: true,\n    cliente: true\n  }\n}\n\nArgument `id` is missing."
+                  "error": "Recurso no encontrado"
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
-      }
-    },
-    "/api/v1/atencion-cliente/comandas/4": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
       "patch": {
         "summary": "actualizar orden",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/comanda"
+          "comanda"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "9961aec9-0865-4fee-b99f-9f3f7824e31b",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2153,7 +3061,7 @@
                 ]
               },
               "example": {
-                "status": "CANCELLED"
+                "status": "DELIVERED"
               }
             }
           }
@@ -2176,7 +3084,7 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "clienteId": {
                           "type": "integer"
@@ -2185,7 +3093,7 @@
                           "type": "string"
                         },
                         "notes": {
-                          "type": "null"
+                          "type": "string"
                         },
                         "sentAt": {
                           "type": "string"
@@ -2199,24 +3107,32 @@
                             "type": "object",
                             "properties": {
                               "id": {
-                                "type": "integer"
+                                "type": "string"
                               },
                               "comandaId": {
-                                "type": "integer"
+                                "type": "string"
                               },
                               "productId": {
-                                "type": "integer"
+                                "type": "string"
                               },
                               "quantity": {
                                 "type": "integer"
                               },
                               "unitPrice": {
-                                "type": "integer"
+                                "type": "number"
                               },
                               "specialInstructions": {
-                                "type": "null"
+                                "type": "string"
                               }
-                            }
+                            },
+                            "required": [
+                              "id",
+                              "comandaId",
+                              "productId",
+                              "quantity",
+                              "unitPrice",
+                              "specialInstructions"
+                            ]
                           }
                         },
                         "cliente": {
@@ -2289,38 +3205,74 @@
                   "success": true,
                   "message": "Estado actualizado",
                   "data": {
-                    "id": 3,
-                    "clienteId": 1,
-                    "status": "COOKING",
-                    "notes": null,
-                    "sentAt": "2025-12-22T13:03:52.534Z",
+                    "id": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                    "clienteId": 34,
+                    "status": "CANCELLED",
+                    "notes": "El cliente es alérgico al brocoli",
+                    "sentAt": "2026-01-15T02:28:37.176Z",
                     "deliveredAt": null,
                     "items": [
                       {
-                        "id": 5,
-                        "comandaId": 3,
-                        "productId": 500,
+                        "id": "250a012f-a5c5-4eaf-a163-d5c71cd9c9a2",
+                        "comandaId": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                        "productId": "d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                        "quantity": 2,
+                        "unitPrice": 12.5,
+                        "specialInstructions": "Test conexion modulo cocina 1"
+                      },
+                      {
+                        "id": "728aab71-4d93-4539-b782-40444e18cf29",
+                        "comandaId": "bb4cf64e-dd85-4d55-95be-46395513f4a6",
+                        "productId": "a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
                         "quantity": 1,
-                        "unitPrice": 20,
-                        "specialInstructions": null
+                        "unitPrice": 3,
+                        "specialInstructions": "Test conexion modulo cocina 2"
                       }
                     ],
                     "cliente": {
-                      "id": 1,
-                      "tableId": 1,
-                      "sessionToken": "token123",
-                      "customerName": "Juan Perez",
-                      "customerDni": "12345678",
+                      "id": 34,
+                      "tableId": 5,
+                      "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0YWJsZV9pZCI6NSwiY3VzdG9tZXJfbmFtZSI6IlJvZHJpZ28iLCJjdXN0b21lcl9kbmkiOiIzMTAxNDU5MiIsInJvbGUiOiJHVUVTVCIsImlhdCI6MTc2ODQ0NDExMCwiZXhwIjoxNzY4NTMwNTEwfQ.zV2qkuxZnsOQJAed8UsvKiFCkNEznJx-YFwZI3mi79c",
+                      "customerName": "Rodrigo",
+                      "customerDni": "31014592",
                       "status": "ACTIVE",
                       "totalAmount": 0,
-                      "createdAt": "2025-12-16T15:36:50.619Z",
+                      "createdAt": "2026-01-15T02:28:30.924Z",
                       "closedAt": null
                     },
-                    "clientMessage": "Hola Juan Perez, su pedido está ahora cooking."
+                    "clientMessage": ""
                   }
                 }
               }
-            }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message"
+                  ]
+                },
+                "example": {
+                  "error": "Acceso Prohibido",
+                  "message": "No puedes acceder a datos que no te pertenecen."
+                }
+              }
+            },
+            "headers": {}
           },
           "404": {
             "description": "",
@@ -2329,19 +3281,20 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
+                    "error": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "message"
+                    "error"
                   ]
                 },
                 "example": {
-                  "message": "Comanda no encontrada"
+                  "error": "Recurso no encontrado"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "409": {
             "description": "",
@@ -2362,10 +3315,15 @@
                   "message": "No se puede cancelar una orden que ya está en preparación o fue entregada."
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/atencion-cliente/service-requests": {
@@ -2374,7 +3332,7 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/service_request"
+          "service_request"
         ],
         "parameters": [],
         "requestBody": {
@@ -2470,21 +3428,25 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "get": {
         "summary": "obtener solicitudes",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/service_request"
+          "service_request"
         ],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "1",
             "schema": {
               "type": "string"
@@ -2494,8 +3456,8 @@
             "name": "limit",
             "in": "query",
             "description": "",
-            "required": true,
-            "example": "5",
+            "required": false,
+            "example": "10",
             "schema": {
               "type": "string"
             }
@@ -2504,7 +3466,7 @@
             "name": "status",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "PENDING",
             "schema": {
               "type": "string"
@@ -2514,7 +3476,7 @@
             "name": "table_id",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "1",
             "schema": {
               "type": "string"
@@ -2524,7 +3486,7 @@
             "name": "type",
             "in": "query",
             "description": "",
-            "required": true,
+            "required": false,
             "example": "COMPLAINT",
             "schema": {
               "type": "string"
@@ -2689,18 +3651,33 @@
             }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
-    "/api/v1/atencion-cliente/service-requests/3": {
+    "/api/v1/atencion-cliente/service-requests/{id}": {
       "patch": {
         "summary": "Actualizar solicitud de servicio",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/service_request"
+          "service_request"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "5e585302-69cc-4d8a-978a-c6979e17cf63",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2716,7 +3693,7 @@
                 ]
               },
               "example": {
-                "status": "CANCELLED"
+                "status": "ATTENDED"
               }
             }
           }
@@ -2739,7 +3716,7 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "clienteId": {
                           "type": "integer"
@@ -2757,7 +3734,7 @@
                           "type": "string"
                         },
                         "attendedAt": {
-                          "type": "string"
+                          "type": "null"
                         }
                       },
                       "required": [
@@ -2781,31 +3758,45 @@
                   "success": true,
                   "message": "Solicitud atendida correctamente",
                   "data": {
-                    "id": 1,
-                    "clienteId": 1,
-                    "type": "CALL_WAITER",
-                    "message": "Por favor traer servilletas extra",
-                    "status": "ATTENDED",
-                    "createdAt": "2025-12-16T16:03:09.277Z",
-                    "attendedAt": "2025-12-27T00:38:00.744Z"
+                    "id": "74644adc-1682-4242-8222-614867e99590",
+                    "clienteId": 23,
+                    "type": "COMPLAINT",
+                    "message": "La sopa estaba fría",
+                    "status": "CANCELLED",
+                    "createdAt": "2026-01-14T17:00:12.927Z",
+                    "attendedAt": null
                   }
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
-      }
-    },
-    "/api/v1/atencion-cliente/service-requests/2": {
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
       "get": {
         "summary": "obtener solicitud de servicio por id",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Raíz/service_request"
+          "service_request"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "74644adc-1682-4242-8222-614867e99590",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -2821,7 +3812,7 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "integer"
+                          "type": "string"
                         },
                         "clienteId": {
                           "type": "integer"
@@ -2839,7 +3830,7 @@
                           "type": "string"
                         },
                         "attendedAt": {
-                          "type": "string"
+                          "type": "null"
                         }
                       },
                       "required": [
@@ -2861,17 +3852,18 @@
                 "example": {
                   "success": true,
                   "data": {
-                    "id": 2,
-                    "clienteId": 1,
-                    "type": "CALL_WAITER",
-                    "message": "Por favor traer servilletas extra",
-                    "status": "ATTENDED",
-                    "createdAt": "2025-12-16T16:04:14.610Z",
-                    "attendedAt": "2025-12-16T16:17:34.732Z"
+                    "id": "74644adc-1682-4242-8222-614867e99590",
+                    "clienteId": 23,
+                    "type": "COMPLAINT",
+                    "message": "La sopa estaba fría",
+                    "status": "PENDING",
+                    "createdAt": "2026-01-14T17:00:12.927Z",
+                    "attendedAt": null
                   }
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "",
@@ -2897,53 +3889,33 @@
                   "message": "Solicitud no encontrada"
                 }
               }
-            }
+            },
+            "headers": {}
           }
         },
-        "security": []
-      }
-    },
-    "/api": {
-      "get": {
-        "summary": "obtener users",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "Raíz/example"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "up": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "up"
-                  ]
-                },
-                "example": {
-                  "up": true
-                }
-              }
-            }
+        "security": [
+          {
+            "bearer": []
           }
-        },
-        "security": []
+        ]
       }
     }
   },
   "components": {
     "schemas": {},
     "responses": {},
-    "securitySchemes": {}
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
   },
   "servers": [],
-  "security": []
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
 }

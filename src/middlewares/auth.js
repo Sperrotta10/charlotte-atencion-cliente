@@ -10,6 +10,14 @@ export const verifyGuestOrStaff = () => {
   return async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
+    // 1. Validar que el header exista antes de intentar leerlo
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ 
+          error: "No autorizado", 
+          message: "Token no proporcionado o formato incorrecto." 
+      });
+    }
+
     const token = authHeader.substring(7);
 
     try {

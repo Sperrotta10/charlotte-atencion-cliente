@@ -2250,13 +2250,13 @@
                 "notes": "El cliente es alérgico al brocoli",
                 "items": [
                   {
-                    "product_id": "d4f1aa76-bd68-417e-bde1-67fba5d03f71",
+                    "product_id": "01391bb6-03cb-4f77-b091-f073962b4d20",
                     "quantity": 2,
                     "unit_price": 12.5,
                     "special_instructions": "Test conexion modulo cocina 1"
                   },
                   {
-                    "product_id": "a5eccd9f-8b62-4ba5-ac9e-21ca43199718",
+                    "product_id": "f584d2e7-f103-433d-b770-f68bbeaba5e4",
                     "quantity": 1,
                     "unit_price": 3,
                     "special_instructions": "Test conexion modulo cocina 2"

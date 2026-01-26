@@ -4,6 +4,12 @@ import { randomUUID } from 'node:crypto'; // Módulo nativo de Node.js
 export const seedTables = async () => {
     console.log('🪑 Sembrando Mesas (Tables)...');
 
+    await prisma.orderItem.deleteMany();
+    await prisma.comanda.deleteMany();
+    await prisma.serviceRequest.deleteMany();
+    await prisma.clienteTemporal.deleteMany();
+    await prisma.table.deleteMany();
+
     const totalTables = 20;
 
     for (let i = 1; i <= totalTables; i++) {

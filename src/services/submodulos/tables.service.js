@@ -298,19 +298,13 @@ export const deleteTable = async ({ id }) => {
     throw error;
   }
 
-  // 4. GENERAR NÚMERO NEGATIVO (Solución al error de String vs Int)
-  // Generamos un aleatorio para evitar colisiones si borras la mesa 7 cinco veces.
-  // Ejemplo: Mesa 7 -> -74821
-  const randomSuffix = Math.floor(Math.random() * 100000); 
-  const deletedTableNumber = -1 * (Math.abs(table.tableNumber) + randomSuffix);
 
-  // 5. EJECUTAR UPDATE (Soft Delete)
+  // 4. EJECUTAR UPDATE (Soft Delete)
   const deletedTable = await prisma.table.update({
     where: { id },
     data: {
       isActive: false,                 // Ocultar
       currentStatus: 'OUT_OF_SERVICE', // Estado coherente
-      tableNumber: deletedTableNumber, // Liberar el número positivo original
     },
   });
 

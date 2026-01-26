@@ -5,7 +5,7 @@ import { verifyStaff } from '../../middlewares/auth.js';
 const router = Router();
 
 // GET /tables - Obtener todas las mesas (Staff/Maître/Gerente con permiso READ)
-router.get('/', verifyStaff('Table_atc', 'Read'), tablesController.getTables);
+router.get('/', tablesController.getTables);
 
 // POST /tables/verify-qr - Verificar Código QR (Acceso Cliente)
 router.post('/verify-qr', tablesController.verifyQr);

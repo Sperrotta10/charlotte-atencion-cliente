@@ -319,7 +319,7 @@ export const deleteTable = async ({ id }) => {
 };
 
 // --- RESTORE (NUEVO) ---
-export const restoreTable = async ({ id, newTableNumber }) => {
+export const restoreTable = async ({ id }) => {
   // 1. Buscar la mesa eliminada (isActive: false)
   const table = await prisma.table.findUnique({
     where: { id },
@@ -337,37 +337,12 @@ export const restoreTable = async ({ id, newTableNumber }) => {
     throw error;
   }
 
-  // 2. Definir qué número de mesa usará
-  // Si el usuario envió un número, usamos ese. Si no, intentamos recuperar el original (esto es riesgoso si ya se ocupó).
-  // RECOMENDACIÓN: Obligar a enviar el nuevo número.
-  
-  if (!newTableNumber) {
-    const error = new Error('Debes asignar un número de mesa para restaurarla.');
-    error.code = 'MISSING_TABLE_NUMBER'; 
-    throw error;
-  }
-
-  // 3. Validar que el número deseado no esté ocupado por otra mesa activa
-  const conflict = await prisma.table.findFirst({
-    where: {
-      tableNumber: newTableNumber,
-      isActive: true
-    }
-  });
-
-  if (conflict) {
-    const error = new Error(`El número de mesa ${newTableNumber} ya está en uso. Elige otro.`);
-    error.code = 'TABLE_NUMBER_CONFLICT';
-    throw error;
-  }
-
-  // 4. RESTAURAR
+  // 2. RESTAURAR
   const restoredTable = await prisma.table.update({
     where: { id },
     data: {
       isActive: true,
-      currentStatus: 'AVAILABLE', // Nace disponible
-      tableNumber: newTableNumber, // Asignamos el número limpio
+      currentStatus: 'AVAILABLE',
     },
   });
 

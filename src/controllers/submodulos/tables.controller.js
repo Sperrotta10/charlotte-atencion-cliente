@@ -214,14 +214,9 @@ export const restoreTable = async (req, res) => {
     const idValidation = tableIdParamSchema.safeParse(req.params);
     if (!idValidation.success) return res.status(400).json({ errors: idValidation.error.format() });
 
-    // 2. Validar Body (necesitamos el nuevo número de mesa)
-    // Puedes crear un Zod schema simple para esto: z.object({ tableNumber: z.number().int().positive() })
-    const { tableNumber } = req.body; 
-
-    // 3. Llamar servicio
+    // 2. Llamar servicio
     const restored = await tablesService.restoreTable({ 
-        id: idValidation.data.id, 
-        newTableNumber: parseInt(tableNumber) // Asegurar que sea int
+        id: idValidation.data.id
     });
 
     return res.status(200).json({
@@ -233,8 +228,6 @@ export const restoreTable = async (req, res) => {
   } catch (error) {
     if (error.code === 'TABLE_NOT_FOUND') return res.status(404).json({ error: error.message });
     if (error.code === 'TABLE_ALREADY_ACTIVE') return res.status(400).json({ error: error.message });
-    if (error.code === 'TABLE_NUMBER_CONFLICT') return res.status(409).json({ error: error.message });
-    if (error.code === 'MISSING_TABLE_NUMBER') return res.status(400).json({ error: error.message });
 
     console.error('Error restaurando mesa:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });

@@ -49,13 +49,32 @@ export const OrderService = {
     });
 
     // B. EVENTO: NOTIFICAR AL KDS (Módulo Cocina)
-    // Ejecutamos esto fuera de la transacción para no bloquear la BD si la API externa tarda
+    // Si falla la creación en cocina, hacemos rollback de la comanda local.
     try {
-      await OrderService.notifyKitchen(newComanda, token);
+      await OrderService.notifyKitchen(newComanda, token, data.items);
     } catch (error) {
-      // No lanzamos error al cliente porque el pedido YA se guardó en nuestra BD.
-      // Solo logueamos el fallo de comunicación. El sistema debería tener un re-try job.
-      console.error("[KDS Error] El pedido se guardó localmente pero falló el envío a cocina:", error.message);
+      console.error("[KDS Error] Falló el envío a cocina, iniciando rollback:", error.message);
+      // Intento de rollback: borrar items y la comanda para mantener consistencia
+      try {
+        await prisma.$transaction(async (tx) => {
+          // Borrado anidado de items si la relación lo permite
+          try {
+            await tx.comanda.update({
+              where: { id: newComanda.id },
+              data: { items: { deleteMany: {} } }
+            });
+          } catch (_) {}
+
+          await tx.comanda.delete({ where: { id: newComanda.id } });
+        });
+      } catch (cleanupError) {
+        console.error("[Rollback Error] No se pudo borrar la comanda local:", cleanupError.message);
+      }
+
+      const e = new Error(error.message || 'Fallo al notificar a cocina');
+      e.code = 'KDS_NOTIFICATION_FAILED';
+      e.status = error.status || 502;
+      throw e;
     }
 
     return newComanda;
@@ -65,19 +84,36 @@ export const OrderService = {
  * Función auxiliar para manejar la comunicación con Cocina
  * Aplica lógica de entorno (Dev vs Prod)
  */
-  notifyKitchen: async (comanda, token) => {
+  notifyKitchen: async (comanda, token, rawItems = []) => {
     // 1. Preparar el Payload EXACTO que pide Cocina
     console.log("[KDS] Preparando payload para cocina...", comanda);
+
+    // Mapa de exclusiones por product_id provenientes del request original
+    const excludedMap = new Map(
+      Array.isArray(rawItems)
+        ? rawItems.map(ri => [
+            ri.product_id,
+            Array.isArray(ri.excluded_recipe_ids) ? ri.excluded_recipe_ids : []
+          ])
+        : []
+    );
+
+    const displayLabel = comanda.notes
+      ? comanda.notes
+      : (comanda.cliente?.table?.tableNumber
+          ? `Mesa ${comanda.cliente.table.tableNumber} - Pedido de ${comanda.cliente.customerName}`
+          : `Pedido de ${comanda.cliente.customerName}`);
+
     const kdsPayload = {
-      externalOrderId: String(comanda.id), 
-      sourceModule: "AC_MODULE",           
-      serviceMode: "DINE_IN",             
-      displayLabel: `Mesa ${comanda.cliente.table.tableNumber}`,
+      externalOrderId: String(comanda.id),
+      sourceModule: "AC_MODULE",
+      serviceMode: "DINE_IN",
+      displayLabel,
       customerName: comanda.cliente.customerName,
       items: comanda.items.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
-        notes: item.specialInstructions || ""
+        excludedRecipeIds: excludedMap.get(item.productId) || []
       }))
     };
 

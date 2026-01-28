@@ -20,6 +20,11 @@ export const createOrderSchema = z.object({
       // REQUISITO: Input en snake_case
       special_instructions: z.string().optional(),
 
+      // NUEVO: IDs de recetas/ingredientes a excluir (snake_case)
+      excluded_recipe_ids: z.array(
+        z.string().uuid({ message: "Cada excluded_recipe_id debe ser un UUID válido" })
+      ).optional(),
+
       // REQUISITO LÓGICO: Como no hay tabla de productos, el precio DEBE venir
       unit_price: z.number().positive({ message: "unit_price es requerido" })
     })

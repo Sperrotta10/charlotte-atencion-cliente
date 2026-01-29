@@ -117,6 +117,8 @@ export const OrderService = {
       }))
     };
 
+    console.log("[KDS] Payload preparado:", kdsPayload);
+
     // 2. Lógica de Entorno
     if (envs.NODE_ENV === 'development') {
       // SIMULACIÓN (MOCK)

@@ -89,15 +89,26 @@ export const OrderService = {
     console.log("[KDS] Preparando payload para cocina...", comanda);
     console.log("[KDS] Items crudos recibidos para exclusiones:", rawItems);
 
-    // Mapa de exclusiones por product_id provenientes del request original
-    const excludedMap = new Map(
-      Array.isArray(rawItems)
-        ? rawItems.map(ri => [
-            ri.product_id,
-            Array.isArray(ri.excluded_recipe_ids) ? ri.excluded_recipe_ids : []
-          ])
-        : []
-    );
+    // Construcción de items por posición a partir de rawItems
+    const kdsItems = Array.isArray(rawItems) && rawItems.length > 0
+      ? rawItems.map(ri => {
+          const base = {
+            productId: ri.product_id,
+            quantity: ri.quantity,
+          };
+          if (Array.isArray(ri.excluded_recipe_ids) && ri.excluded_recipe_ids.length > 0) {
+            base.excludedRecipeIds = ri.excluded_recipe_ids;
+          }
+          return base;
+        })
+      : comanda.items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        }));
+
+    if (Array.isArray(rawItems) && Array.isArray(comanda.items) && rawItems.length !== comanda.items.length) {
+      console.warn("[KDS Warning] Desalineación: rawItems y comanda.items tienen longitudes distintas.", { rawItems: rawItems.length, comandaItems: comanda.items.length });
+    }
 
     const displayLabel = comanda.notes
       ? comanda.notes
@@ -111,17 +122,7 @@ export const OrderService = {
       serviceMode: "DINE_IN",
       displayLabel,
       customerName: comanda.cliente.customerName,
-      items: comanda.items.map(item => {
-        const excluded = excludedMap.get(item.productId);
-        const base = {
-          productId: item.productId,
-          quantity: item.quantity,
-        };
-        if (Array.isArray(excluded) && excluded.length > 0) {
-          base.excludedRecipeIds = excluded;
-        }
-        return base;
-      })
+      items: kdsItems
     };
 
     // Log detallado para ver arrays completos en consola

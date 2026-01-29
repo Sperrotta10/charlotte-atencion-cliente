@@ -110,14 +110,21 @@ export const OrderService = {
       serviceMode: "DINE_IN",
       displayLabel,
       customerName: comanda.cliente.customerName,
-      items: comanda.items.map(item => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        excludedRecipeIds: excludedMap.get(item.productId) || []
-      }))
+      items: comanda.items.map(item => {
+        const excluded = excludedMap.get(item.productId);
+        const base = {
+          productId: item.productId,
+          quantity: item.quantity,
+        };
+        if (Array.isArray(excluded) && excluded.length > 0) {
+          base.excludedRecipeIds = excluded;
+        }
+        return base;
+      })
     };
 
-    console.log("[KDS] Payload preparado:", kdsPayload);
+    // Log detallado para ver arrays completos en consola
+    console.log("[KDS] Payload preparado:\n" + JSON.stringify(kdsPayload, null, 2));
 
     // 2. Lógica de Entorno
     if (envs.NODE_ENV === 'development') {

@@ -87,6 +87,7 @@ export const OrderService = {
   notifyKitchen: async (comanda, token, rawItems = []) => {
     // 1. Preparar el Payload EXACTO que pide Cocina
     console.log("[KDS] Preparando payload para cocina...", comanda);
+    console.log("[KDS] Items crudos recibidos para exclusiones:", rawItems);
 
     // Mapa de exclusiones por product_id provenientes del request original
     const excludedMap = new Map(

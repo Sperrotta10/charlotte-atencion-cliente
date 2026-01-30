@@ -1,6 +1,7 @@
 import { prisma } from '../../db/client.js';
 import { envs } from '../../config/envs.js';
 import jwt from 'jsonwebtoken';
+import { OrderService } from './order_items.service.js';
 
 /**
  * Solicita o Genera un token JWT.
@@ -320,7 +321,7 @@ export const updateClientStatus = async (id, data) => {
  * @param {number} id - ID del cliente temporal
  * @returns {Promise<Object>} Resumen de la operación
  */
-export const forceCloseClient = async (id) => {
+export const forceCloseClient = async (id, token) => {
   // Verificar existencia del cliente y datos de mesa
   const cliente = await prisma.clienteTemporal.findUnique({
     where: { id },
@@ -347,6 +348,12 @@ export const forceCloseClient = async (id) => {
     });
 
     // 2) Cancelar órdenes en progreso (PENDING/COOKING)
+    // Antes de cancelar, obtenemos los IDs para notificar a Cocina luego
+    const ordersToCancel = await tx.comanda.findMany({
+      where: { clienteId: id, status: { in: ['PENDING', 'COOKING'] } },
+      select: { id: true }
+    });
+
     const cancelledOrders = await tx.comanda.updateMany({
       where: { clienteId: id, status: { in: ['PENDING', 'COOKING'] } },
       data: { status: 'CANCELLED' },
@@ -378,8 +385,20 @@ export const forceCloseClient = async (id) => {
       closedClient,
       cancelledRequestsCount: cancelledRequests.count,
       cancelledOrdersCount: cancelledOrders.count,
+      cancelledOrderIds: ordersToCancel.map(o => o.id),
     };
   });
+
+  // Notificar a Cocina por cada orden cancelada (fuera de la transacción)
+  if (Array.isArray(result.cancelledOrderIds) && result.cancelledOrderIds.length > 0) {
+    for (const orderId of result.cancelledOrderIds) {
+      try {
+        await OrderService.notifyKitchenCancellation(orderId, token);
+      } catch (notifError) {
+        console.error(`[KDS Error] No se pudo notificar cancelación de orden ${orderId} en Cocina:`, notifError.message);
+      }
+    }
+  }
 
   return {
     success: true,

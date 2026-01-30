@@ -239,7 +239,9 @@ export const forceCloseClient = async (req, res) => {
       return res.status(400).json({ errors: idValidation.error.format() });
     }
 
-    const result = await clienteTemporalService.forceCloseClient(idValidation.data.id);
+    const token = req.headers.authorization?.split(' ')[1];
+
+    const result = await clienteTemporalService.forceCloseClient(idValidation.data.id, token);
     return res.status(200).json(result);
   } catch (error) {
     if (error.code === 'CLIENT_NOT_FOUND') {

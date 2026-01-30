@@ -312,6 +312,90 @@ export const updateClientStatus = async (id, data) => {
 };
 
 /**
+ * Cierre forzado de sesión de cliente con limpieza asociada
+ * - Marca cliente como CLOSED y setea closedAt
+ * - Cancela solicitudes de soporte en estado PENDING
+ * - Cancela comandas en estados PENDING/COOKING
+ * - Libera la mesa si no quedan clientes ACTIVE/BILL_REQUESTED
+ * @param {number} id - ID del cliente temporal
+ * @returns {Promise<Object>} Resumen de la operación
+ */
+export const forceCloseClient = async (id) => {
+  // Verificar existencia del cliente y datos de mesa
+  const cliente = await prisma.clienteTemporal.findUnique({
+    where: { id },
+    include: {
+      table: {
+        select: { id: true, tableNumber: true },
+      },
+    },
+  });
+
+  if (!cliente) {
+    const error = new Error('Cliente no encontrado');
+    error.code = 'CLIENT_NOT_FOUND';
+    throw error;
+  }
+
+  let mesaLiberada = false;
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1) Cancelar solicitudes de soporte PENDING del cliente
+    const cancelledRequests = await tx.serviceRequest.updateMany({
+      where: { clienteId: id, status: 'PENDING' },
+      data: { status: 'CANCELLED' },
+    });
+
+    // 2) Cancelar órdenes en progreso (PENDING/COOKING)
+    const cancelledOrders = await tx.comanda.updateMany({
+      where: { clienteId: id, status: { in: ['PENDING', 'COOKING'] } },
+      data: { status: 'CANCELLED' },
+    });
+
+    // 3) Cerrar cliente
+    const closedClient = await tx.clienteTemporal.update({
+      where: { id },
+      data: { status: 'CLOSED', closedAt: new Date() },
+    });
+
+    // 4) Liberar mesa si no quedan clientes activos o pidiendo cuenta
+    const remaining = await tx.clienteTemporal.count({
+      where: {
+        tableId: cliente.tableId,
+        status: { in: ['ACTIVE', 'BILL_REQUESTED'] },
+      },
+    });
+
+    if (remaining === 0) {
+      await tx.table.update({
+        where: { id: cliente.tableId },
+        data: { currentStatus: 'AVAILABLE' },
+      });
+      mesaLiberada = true;
+    }
+
+    return {
+      closedClient,
+      cancelledRequestsCount: cancelledRequests.count,
+      cancelledOrdersCount: cancelledOrders.count,
+    };
+  });
+
+  return {
+    success: true,
+    message: `Sesión cerrada y limpiada. Mesa ${cliente.table.tableNumber}${mesaLiberada ? ' liberada' : ''}.`,
+    data: {
+      client_id: result.closedClient.id,
+      table_id: cliente.tableId,
+      table_number: cliente.table.tableNumber,
+      cancelled_requests: result.cancelledRequestsCount,
+      cancelled_orders: result.cancelledOrdersCount,
+      table_released: mesaLiberada,
+    },
+  };
+};
+
+/**
  * Obtiene una lista paginada de clientes con filtros opcionales
  * @param {Object} filters - Filtros de búsqueda: { page, limit, status, date_from, date_to, min_amount }
  * @returns {Promise<Object>} Objeto con datos paginados y metadatos

@@ -4,11 +4,13 @@ import { seedTables } from './seeds/tables.js';
 import { seedClients } from './seeds/clients.js';
 import { seedComandas } from './seeds/comandas.js';
 import { seedRequests } from './seeds/requests.js';
+import { deleteBd } from './seeds/delete.js';
 
 async function main() {
 	
 	console.log('🚀 Start seeding ...');
-	//await seedExample(); // Llamada a la funcion de seedExample
+	await deleteBd();
+	/*
 	// 1. Tablas (Infraestructura base)
         await seedTables();
         
@@ -22,6 +24,7 @@ async function main() {
             // 4. Solicitudes (Dependen de Clientes)
             await seedRequests(activeClients);
 		}
+	*/
 	console.log('🏁 Seeding finished.');
 
 }

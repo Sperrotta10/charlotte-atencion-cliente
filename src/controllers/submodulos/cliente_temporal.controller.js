@@ -231,3 +231,22 @@ export const updateClientStatus = async (req, res) => {
   }
 };
 
+// POST /clients/:id/force-close - Cierre forzado con limpieza (Staff/Admin o dueño de la sesión)
+export const forceCloseClient = async (req, res) => {
+  try {
+    const idValidation = clientIdParamSchema.safeParse(req.params);
+    if (!idValidation.success) {
+      return res.status(400).json({ errors: idValidation.error.format() });
+    }
+
+    const result = await clienteTemporalService.forceCloseClient(idValidation.data.id);
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.code === 'CLIENT_NOT_FOUND') {
+      return res.status(404).json({ error: error.message });
+    }
+    console.error('Error en cierre forzado:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+

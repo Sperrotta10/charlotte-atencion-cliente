@@ -19,5 +19,8 @@ router.get('/:id', verifyGuestOrStaff(), clienteTemporalController.getClientById
 // PATCH /clients/:id - Actualizar Cliente (Checkout/Status) ("Guest pide cuenta (BILL_REQUESTED), Staff cierra (CLOSED)")
 router.patch('/:id', verifyGuestOrStaff(), ensureOwnership('clienteTemporal'), clienteTemporalController.updateClientStatus);
 
+// POST /clients/:id/force-close - Cierre forzado con limpieza (cliente + soporte + órdenes)
+router.post('/:id/force-close', verifyGuestOrStaff(), ensureOwnership('clienteTemporal'), clienteTemporalController.forceCloseClient);
+
 export default router;
 

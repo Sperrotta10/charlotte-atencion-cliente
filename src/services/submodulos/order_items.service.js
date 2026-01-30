@@ -335,6 +335,7 @@ export const OrderService = {
       id: order.id,
       status: order.status,
       notes: order.notes,
+      clientId: order.clienteId,
       
       // TIMESTAMPS CRÍTICOS PARA KPI
       // Frontend KDS calculará: (NOW - sent_at) = Tiempo de Espera actual

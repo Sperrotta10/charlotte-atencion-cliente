@@ -68,6 +68,12 @@ export const ratingsByWaiterQuerySchema = z.object({
     .optional()
     .transform((v) => (v ? parseInt(v, 10) : 10))
     .pipe(z.number().int().min(1).max(50)),
+  granularity: z
+    .string()
+    .optional()
+    .transform((v) => (v === 'daily' || v === 'weekly' ? v : 'global')),
+  from: z.string().optional(),
+  to: z.string().optional(),
 });
 
 export const ratingsListPagedQuerySchema = z.object({

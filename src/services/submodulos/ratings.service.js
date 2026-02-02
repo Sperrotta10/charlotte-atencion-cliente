@@ -93,7 +93,7 @@ export const RatingsService = {
   }
 };
 // Listado agrupado por mesero con paginación
-export async function listGroupedByWaiter({ page = 1, page_size = 10, recent_count = 10 }) {
+export async function listGroupedByWaiter({ page = 1, page_size = 10, recent_count = 10, granularity = 'global', from, to }) {
   // 1. Obtener lista de waiterIds únicos
   const distinctWaiters = await prisma.waiterRating.findMany({
     distinct: ['waiterId'],
@@ -108,8 +108,18 @@ export async function listGroupedByWaiter({ page = 1, page_size = 10, recent_cou
   // 2. Para cada mesero, obtener sus ratings y stats
   const results = [];
   for (const waiterId of pageWaiters) {
+    const where = { waiterId };
+    if (from || to) {
+      where.createdAt = {};
+      if (from) where.createdAt.gte = new Date(from);
+      if (to) {
+        const endDate = new Date(to);
+        endDate.setHours(23, 59, 59, 999);
+        where.createdAt.lte = endDate;
+      }
+    }
     const ratings = await prisma.waiterRating.findMany({
-      where: { waiterId },
+      where,
       orderBy: { createdAt: 'desc' }
     });
     const count = ratings.length;
@@ -124,6 +134,40 @@ export async function listGroupedByWaiter({ page = 1, page_size = 10, recent_cou
       comment: r.comment,
       createdAt: r.createdAt,
     }));
+
+    // Buckets por día/semana si se solicita
+    let buckets = undefined;
+    if (granularity === 'daily' || granularity === 'weekly') {
+      const map = new Map();
+      const getBucketKey = (d) => {
+        const date = new Date(d);
+        if (granularity === 'daily') {
+          const y = date.getFullYear();
+          const m = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        } else {
+          // week: usar lunes como inicio de semana
+          const tmp = new Date(date);
+          const dayOfWeek = (tmp.getDay() + 6) % 7; // 0=lunes
+          tmp.setDate(tmp.getDate() - dayOfWeek);
+          const y = tmp.getFullYear();
+          const m = String(tmp.getMonth() + 1).padStart(2, '0');
+          const day = String(tmp.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+      };
+      ratings.forEach((r) => {
+        const key = getBucketKey(r.createdAt);
+        const entry = map.get(key) || { bucket: key, count: 0, sum: 0 };
+        entry.count += 1;
+        entry.sum += r.score;
+        map.set(key, entry);
+      });
+      buckets = Array.from(map.values())
+        .sort((a, b) => new Date(a.bucket) - new Date(b.bucket))
+        .map((e) => ({ bucket: e.bucket, count: e.count, average: e.count > 0 ? e.sum / e.count : 0 }));
+    }
 
     // 3. Detalles del mesero desde Cocina (best-effort)
     let waiter = { id: waiterId };
@@ -147,6 +191,7 @@ export async function listGroupedByWaiter({ page = 1, page_size = 10, recent_cou
     results.push({
       waiter,
       stats: { count, average, lastRatingAt },
+      buckets,
       recentRatings: recent,
     });
   }

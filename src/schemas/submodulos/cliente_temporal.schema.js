@@ -54,6 +54,8 @@ export const updateStatusSchema = z.object({
   }).optional(),
   // Nuevo campo opcional: total_amount
   total_amount: z.number().min(0, "El monto no puede ser negativo").optional(),
+  // Mesero que realiza el cierre (KitchenStaff.id UUID)
+  waiter_id: z.string().uuid({ message: 'El waiter_id debe ser un UUID válido' }).optional(),
 });
 
 // Esquema de validación para query params del GET /clients

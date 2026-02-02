@@ -249,6 +249,10 @@ export const updateClientStatus = async (id, data) => {
   // 3. Si el estado es CLOSED, establecer closedAt
   if (status === 'CLOSED') {
     updateData.closedAt = new Date();
+    // Guardar el mesero que realiza el cierre si fue provisto
+    if (data.waiter_id) {
+      updateData.closedByWaiterId = data.waiter_id;
+    }
   }
 
   // 4. Ejecutar actualización y lógica de auto-liberación en una transacción

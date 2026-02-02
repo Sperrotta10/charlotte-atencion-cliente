@@ -3,6 +3,8 @@ import tablesRoutes from './submodulos/tables.route.js';
 import clienteTemporalRoutes from './submodulos/cliente_temporal.route.js';
 import serviceRequestRoutes from './submodulos/service_request.route.js';
 import orderRoutes from './submodulos/order_items.route.js';
+import ratingsRoutes from './submodulos/ratings.route.js';
+import kitchenWebhookRoutes from './submodulos/kitchen_webhook.route.js';
 import { verifyGuest, verifyStaff } from '../middlewares/auth.js';
 
 const router = Router();
@@ -45,5 +47,11 @@ router.use('/service-requests', serviceRequestRoutes);
 
 // 4. Rutas de gestión de comandas
 router.use('/comandas', orderRoutes);
+
+// 5. Rutas de calificaciones de mesero
+router.use('/ratings', ratingsRoutes);
+
+// 6. Webhooks desde Cocina (asignación/entrega por mesero)
+router.use('/kitchen', kitchenWebhookRoutes);
 
 export default router;

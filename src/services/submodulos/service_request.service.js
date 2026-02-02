@@ -59,6 +59,34 @@ export const ServiceRequestService = {
     // En este caso, asumiremos que solo ATTENDED lleva fecha.
     if (newStatus === 'ATTENDED') {
       updateData.attendedAt = new Date();
+
+      // Resolver mesero desde waiter_id o worker_code (vía Cocina)
+      let waiterId = null;
+      if (data.waiter_id) {
+        waiterId = data.waiter_id;
+      } else if (data.worker_code) {
+        // Llamada al servicio de cocina para validar y obtener el id
+        const { CHARLOTTE_COCINA_URL } = (await import('../../config/envs.js')).envs;
+        if (CHARLOTTE_COCINA_URL) {
+          try {
+            const resp = await fetch(`${CHARLOTTE_COCINA_URL}/staff/validate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ workerCode: data.worker_code })
+            });
+            if (resp.ok) {
+              const staff = await resp.json();
+              waiterId = staff.id;
+            }
+          } catch (e) {
+            console.warn('No se pudo validar worker_code contra Cocina:', e.message);
+          }
+        }
+      }
+
+      if (waiterId) {
+        updateData.attendedByWaiterId = waiterId;
+      }
     }
 
     // 4. Ejecutar actualización en la base de datos
@@ -66,6 +94,18 @@ export const ServiceRequestService = {
       where: { id },
       data: updateData
     });
+
+    // Si identificamos mesero, actualizamos el cliente con lastWaiterId
+    if (newStatus === 'ATTENDED' && updatedRequest.attendedByWaiterId) {
+      try {
+        await prisma.clienteTemporal.update({
+          where: { id: updatedRequest.clienteId },
+          data: { lastWaiterId: updatedRequest.attendedByWaiterId }
+        });
+      } catch (e) {
+        console.warn('No se pudo actualizar lastWaiterId en cliente:', e.message);
+      }
+    }
 
     return updatedRequest;
   }

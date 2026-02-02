@@ -22,7 +22,9 @@ export const attendServiceRequestSchema = z.object({
     invalid_type_error: "El estado debe ser 'ATTENDED' o 'CANCELLED'",
     // Personalizamos el mensaje de error para claridad
     errorMap: () => ({ message: "El estado debe ser 'ATTENDED' o 'CANCELLED'" })
-  })
+  }),
+  waiter_id: z.string().uuid({ message: 'waiter_id inválido' }).optional(),
+  worker_code: z.string().min(3, { message: 'worker_code inválido' }).optional()
 });
 
 export const getServiceRequestsQuerySchema = z.preprocess(

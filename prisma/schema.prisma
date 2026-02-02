@@ -63,6 +63,12 @@ enum RequestStatus {
   CANCELLED
 }
 
+// Acciones registradas desde Cocina para atribuir mesero
+enum InteractionAction {
+  ASSIGN
+  SERVE
+}
+
 model Table {
   id            Int         @id @default(autoincrement())  
   tableNumber   Int         @unique @map("table_number")
@@ -89,10 +95,16 @@ model ClienteTemporal {
   totalAmount  Float        @default(0) @map("total_amount")  
   createdAt    DateTime     @default(now()) @map("created_at")
   closedAt     DateTime?    @map("closed_at")
+  // Mesero que cerró la atención (KitchenStaff.id de charlotte-cocina)
+  closedByWaiterId String?   @map("closed_by_waiter_id")
+  // Último mesero que atendió (por CALL_WAITER u otras interacciones)
+  lastWaiterId     String?   @map("last_waiter_id")
 
   // Relations
   comandas     Comanda[]
   requests     ServiceRequest[]
+  ratings      WaiterRating[]
+  interactions WaiterInteraction[]
 
   // Table Config
   @@map("cliente_temporal")
@@ -136,7 +148,36 @@ model ServiceRequest {
   status     RequestStatus @default(PENDING)
   createdAt  DateTime      @default(now()) @map("created_at")
   attendedAt DateTime?     @map("attended_at")
+  attendedByWaiterId String? @map("attended_by_waiter_id") // UUID de KitchenStaff
 
   // Table Config
   @@map("service_requests")
+}
+
+// Registro de calificación por mesero para una sesión de cliente
+model WaiterRating {
+  id        String          @id @default(uuid())
+  clienteId Int             @map("cliente_id")
+  cliente   ClienteTemporal @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  waiterId  String          @map("waiter_id") // UUID de KitchenStaff (charlotte-cocina)
+  score     Int
+  comment   String?
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  @@map("waiter_ratings")
+  @@unique([clienteId, waiterId])
+}
+
+// Registro de interacciones del mesero vinculadas a una sesión/comanda
+model WaiterInteraction {
+  id              String            @id @default(uuid())
+  clienteId       Int               @map("cliente_id")
+  cliente         ClienteTemporal   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  waiterId        String            @map("waiter_id")
+  role            String?           // CHEF | WAITER | HEAD_WAITER | MAITRE, etc.
+  action          InteractionAction
+  externalOrderId String?           @map("external_order_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  @@map("waiter_interactions")
 }

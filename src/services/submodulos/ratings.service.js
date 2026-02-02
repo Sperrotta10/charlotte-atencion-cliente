@@ -19,22 +19,14 @@ export const RatingsService = {
           err.code = 'WAITER_NOT_ASSIGNED';
           throw err;
         }
-        // Calificar al único conocido
-        const created = await prisma.waiterRating.upsert({
-          where: { clienteId_waiterId: { clienteId, waiterId: fallback } },
-          update: { score, comment },
-          create: { clienteId, waiterId: fallback, score, comment }
-        });
+        // Calificar al único conocido (con fallback si no existe constraint única)
+        const created = await safeCompositeUpsert(clienteId, fallback, { score, comment });
         return [created];
       }
       // Crear/actualizar para todos
       const results = [];
       for (const wid of waiterIds) {
-        const r = await prisma.waiterRating.upsert({
-          where: { clienteId_waiterId: { clienteId, waiterId: wid } },
-          update: { score, comment },
-          create: { clienteId, waiterId: wid, score, comment }
-        });
+        const r = await safeCompositeUpsert(clienteId, wid, { score, comment });
         results.push(r);
       }
       return results;
@@ -46,11 +38,7 @@ export const RatingsService = {
         err.code = 'WAITER_NOT_ASSIGNED';
         throw err;
       }
-      const created = await prisma.waiterRating.upsert({
-        where: { clienteId_waiterId: { clienteId, waiterId } },
-        update: { score, comment },
-        create: { clienteId, waiterId, score, comment }
-      });
+      const created = await safeCompositeUpsert(clienteId, waiterId, { score, comment });
       return created;
     }
   },
@@ -103,3 +91,30 @@ export const RatingsService = {
     return Array.from(set);
   }
 };
+
+// Helper: Upsert por composite key con fallback para entornos sin constraint única aplicada
+async function safeCompositeUpsert(clienteId, waiterId, { score, comment }) {
+  try {
+    return await prisma.waiterRating.upsert({
+      where: { clienteId_waiterId: { clienteId, waiterId } },
+      update: { score, comment },
+      create: { clienteId, waiterId, score, comment }
+    });
+  } catch (e) {
+    const msg = (e && e.message) ? e.message : '';
+    // Fallback cuando Postgres indica falta de constraint única para ON CONFLICT
+    if (msg.includes('no unique or exclusion constraint') || msg.includes('ON CONFLICT')) {
+      const existing = await prisma.waiterRating.findFirst({ where: { clienteId, waiterId } });
+      if (existing) {
+        return await prisma.waiterRating.update({
+          where: { id: existing.id },
+          data: { score, comment }
+        });
+      }
+      return await prisma.waiterRating.create({
+        data: { clienteId, waiterId, score, comment }
+      });
+    }
+    throw e;
+  }
+}

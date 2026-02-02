@@ -14,6 +14,6 @@ router.get('/', listRatings);
 router.get('/summary', ratingsSummary);
 
 // Listar meseros que atendieron una sesión
-router.get('/clients/:id/waiters', verifyGuestOrStaff(), ensureOwnership('clienteTemporal'), getClientWaiters);
+router.get('/clients/:id/waiters', getClientWaiters);
 
 export default router;

@@ -186,3 +186,82 @@ async function safeCompositeUpsert(clienteId, waiterId, { score, comment }) {
     throw e;
   }
 }
+
+// Lista paginada con datos esenciales del cliente
+export async function listRatingsPaged({ page = 1, page_size = 10, waiter_id, from, to, order_by = 'createdAt', direction = 'desc' }) {
+  const skip = (page - 1) * page_size;
+  const where = {};
+  if (waiter_id) where.waiterId = waiter_id;
+  if (from || to) {
+    where.createdAt = {};
+    if (from) where.createdAt.gte = new Date(from);
+    if (to) {
+      const end = new Date(to);
+      end.setHours(23, 59, 59, 999);
+      where.createdAt.lte = end;
+    }
+  }
+
+  const orderBy = {};
+  orderBy[order_by] = direction;
+
+  const [total, rows] = await Promise.all([
+    prisma.waiterRating.count({ where }),
+    prisma.waiterRating.findMany({
+      where,
+      orderBy,
+      skip,
+      take: page_size,
+      include: {
+        cliente: {
+          select: { id: true, customerName: true, customerDni: true }
+        }
+      }
+    })
+  ]);
+
+  const data = rows.map(r => ({
+    id: r.id,
+    waiterId: r.waiterId,
+    score: r.score,
+    comment: r.comment,
+    createdAt: r.createdAt,
+    cliente: r.cliente
+  }));
+
+  return { success: true, page, page_size, total, data };
+}
+
+// Serie temporal de calificaciones (diaria o semanal)
+export async function ratingsTimeseries({ granularity, waiter_id, from, to }) {
+  const unit = granularity === 'weekly' ? 'week' : 'day';
+  const params = [];
+  let idx = 1;
+
+  // Construcción segura del WHERE
+  let where = 'WHERE 1=1';
+  if (waiter_id) { where += ` AND waiter_id = $${idx++}`; params.push(waiter_id); }
+  if (from) { where += ` AND created_at >= $${idx++}`; params.push(new Date(from)); }
+  if (to) { where += ` AND created_at <= $${idx++}`; params.push(new Date(to)); }
+
+  const query = `
+    SELECT date_trunc('${unit}', created_at) AS bucket,
+           COUNT(*)::int AS count,
+           AVG(score)::float AS average
+    FROM waiter_ratings
+    ${where}
+    GROUP BY bucket
+    ORDER BY bucket ASC
+  `;
+
+  const rows = await prisma.$queryRawUnsafe(query, ...params);
+  return {
+    success: true,
+    granularity,
+    data: rows.map(r => ({
+      bucket: r.bucket,
+      count: Number(r.count),
+      average: typeof r.average === 'number' ? r.average : Number(r.average)
+    }))
+  };
+}

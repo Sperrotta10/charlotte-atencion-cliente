@@ -69,3 +69,34 @@ export const ratingsByWaiterQuerySchema = z.object({
     .transform((v) => (v ? parseInt(v, 10) : 10))
     .pipe(z.number().int().min(1).max(50)),
 });
+
+export const ratingsListPagedQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 1))
+    .pipe(z.number().int().min(1)),
+  page_size: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 10))
+    .pipe(z.number().int().min(1).max(100)),
+  waiter_id: z.string().uuid().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  order_by: z
+    .string()
+    .optional()
+    .transform((v) => (v === 'score' ? 'score' : 'createdAt')),
+  direction: z
+    .string()
+    .optional()
+    .transform((v) => (v === 'asc' ? 'asc' : 'desc')),
+});
+
+export const ratingsTimeseriesQuerySchema = z.object({
+  granularity: z.enum(['daily', 'weekly']),
+  waiter_id: z.string().uuid().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});

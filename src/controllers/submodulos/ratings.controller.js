@@ -1,5 +1,5 @@
-import { RatingsService, listGroupedByWaiter } from '../../services/submodulos/ratings.service.js';
-import { createRatingParamsSchema, createRatingBodySchema, ratingsQuerySchema, summaryQuerySchema, clientIdParamSchema, ratingsByWaiterQuerySchema } from '../../schemas/submodulos/ratings.schema.js';
+import { RatingsService, listGroupedByWaiter, listRatingsPaged, ratingsTimeseries } from '../../services/submodulos/ratings.service.js';
+import { createRatingParamsSchema, createRatingBodySchema, ratingsQuerySchema, summaryQuerySchema, clientIdParamSchema, ratingsByWaiterQuerySchema, ratingsListPagedQuerySchema, ratingsTimeseriesQuerySchema } from '../../schemas/submodulos/ratings.schema.js';
 
 export const createRatingForClient = async (req, res) => {
   try {
@@ -67,6 +67,30 @@ export const listRatingsByWaiter = async (req, res) => {
     return res.json(result);
   } catch (error) {
     console.error('Error listando calificaciones por mesero:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const listRatingsPagedController = async (req, res) => {
+  try {
+    const query = ratingsListPagedQuerySchema.safeParse(req.query);
+    if (!query.success) return res.status(400).json({ errors: query.error.format() });
+    const data = await listRatingsPaged(query.data);
+    return res.json(data);
+  } catch (error) {
+    console.error('Error en listado paginado de calificaciones:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const ratingsTimeseriesController = async (req, res) => {
+  try {
+    const query = ratingsTimeseriesQuerySchema.safeParse(req.query);
+    if (!query.success) return res.status(400).json({ errors: query.error.format() });
+    const data = await ratingsTimeseries(query.data);
+    return res.json(data);
+  } catch (error) {
+    console.error('Error en serie temporal de calificaciones:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

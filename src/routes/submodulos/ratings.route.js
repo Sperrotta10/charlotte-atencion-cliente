@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createRatingForClient, listRatings, ratingsSummary, getClientWaiters, listRatingsByWaiter } from '../../controllers/submodulos/ratings.controller.js';
+import { createRatingForClient, listRatings, ratingsSummary, getClientWaiters, listRatingsByWaiter, listRatingsPagedController, ratingsTimeseriesController } from '../../controllers/submodulos/ratings.controller.js';
 import { verifyGuestOrStaff, ensureOwnership } from '../../middlewares/auth.js';
 
 const router = Router();
@@ -10,6 +10,9 @@ router.post('/clients/:id', verifyGuestOrStaff(), ensureOwnership('clienteTempor
 // Listado de calificaciones (dashboard)
 router.get('/', listRatings);
 
+// Listado paginado con datos del cliente (nombre, DNI)
+router.get('/paged', listRatingsPagedController);
+
 // Resumen/metricas
 router.get('/summary', ratingsSummary);
 
@@ -18,5 +21,8 @@ router.get('/clients/:id/waiters', getClientWaiters);
 
 // Calificaciones agrupadas por mesero (paginadas)
 router.get('/by-waiter', listRatingsByWaiter);
+
+// Serie temporal (diaria/semanal)
+router.get('/timeseries', ratingsTimeseriesController);
 
 export default router;

@@ -1,4 +1,5 @@
 import { prisma } from '../../db/client.js';
+import { envs } from '../../config/envs.js';
 
 export const RatingsService = {
   // Crear/registrar calificación para un cliente
@@ -91,6 +92,73 @@ export const RatingsService = {
     return Array.from(set);
   }
 };
+// Listado agrupado por mesero con paginación
+export async function listGroupedByWaiter({ page = 1, page_size = 10, recent_count = 10 }) {
+  // 1. Obtener lista de waiterIds únicos
+  const distinctWaiters = await prisma.waiterRating.findMany({
+    distinct: ['waiterId'],
+    select: { waiterId: true },
+    orderBy: { waiterId: 'asc' },
+  });
+  const totalWaiters = distinctWaiters.length;
+  const start = (page - 1) * page_size;
+  const end = start + page_size;
+  const pageWaiters = distinctWaiters.slice(start, end).map((w) => w.waiterId);
+
+  // 2. Para cada mesero, obtener sus ratings y stats
+  const results = [];
+  for (const waiterId of pageWaiters) {
+    const ratings = await prisma.waiterRating.findMany({
+      where: { waiterId },
+      orderBy: { createdAt: 'desc' }
+    });
+    const count = ratings.length;
+    const average = count > 0 ? ratings.reduce((acc, r) => acc + r.score, 0) / count : 0;
+    const lastRatingAt = count > 0 ? ratings[0].createdAt : null;
+
+    // Recientes
+    const recent = ratings.slice(0, recent_count).map((r) => ({
+      id: r.id,
+      clienteId: r.clienteId,
+      score: r.score,
+      comment: r.comment,
+      createdAt: r.createdAt,
+    }));
+
+    // 3. Detalles del mesero desde Cocina (best-effort)
+    let waiter = { id: waiterId };
+    if (envs.CHARLOTTE_COCINA_URL) {
+      try {
+        const resp = await fetch(`${envs.CHARLOTTE_COCINA_URL}/staff/${waiterId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          waiter = {
+            id: waiterId,
+            name: data?.externalName || data?.name || null,
+            email: data?.externalEmail || null,
+            role: data?.externalRole || data?.role || null,
+          };
+        }
+      } catch (e) {
+        // noop
+      }
+    }
+
+    results.push({
+      waiter,
+      stats: { count, average, lastRatingAt },
+      recentRatings: recent,
+    });
+  }
+
+  return {
+    success: true,
+    page,
+    page_size,
+    total_waiters: totalWaiters,
+    data: results,
+  };
+}
 
 // Helper: Upsert por composite key con fallback para entornos sin constraint única aplicada
 async function safeCompositeUpsert(clienteId, waiterId, { score, comment }) {

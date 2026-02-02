@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createRatingForClient, listRatings, ratingsSummary, getClientWaiters } from '../../controllers/submodulos/ratings.controller.js';
+import { createRatingForClient, listRatings, ratingsSummary, getClientWaiters, listRatingsByWaiter } from '../../controllers/submodulos/ratings.controller.js';
 import { verifyGuestOrStaff, ensureOwnership } from '../../middlewares/auth.js';
 
 const router = Router();
@@ -15,5 +15,8 @@ router.get('/summary', ratingsSummary);
 
 // Listar meseros que atendieron una sesión
 router.get('/clients/:id/waiters', getClientWaiters);
+
+// Calificaciones agrupadas por mesero (paginadas)
+router.get('/by-waiter', listRatingsByWaiter);
 
 export default router;

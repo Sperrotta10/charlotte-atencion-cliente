@@ -1,5 +1,5 @@
-import { RatingsService } from '../../services/submodulos/ratings.service.js';
-import { createRatingParamsSchema, createRatingBodySchema, ratingsQuerySchema, summaryQuerySchema, clientIdParamSchema } from '../../schemas/submodulos/ratings.schema.js';
+import { RatingsService, listGroupedByWaiter } from '../../services/submodulos/ratings.service.js';
+import { createRatingParamsSchema, createRatingBodySchema, ratingsQuerySchema, summaryQuerySchema, clientIdParamSchema, ratingsByWaiterQuerySchema } from '../../schemas/submodulos/ratings.schema.js';
 
 export const createRatingForClient = async (req, res) => {
   try {
@@ -54,6 +54,19 @@ export const getClientWaiters = async (req, res) => {
     return res.json({ success: true, data: ids });
   } catch (error) {
     console.error('Error obteniendo meseros de cliente:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+export const listRatingsByWaiter = async (req, res) => {
+  try {
+    const query = ratingsByWaiterQuerySchema.safeParse(req.query);
+    if (!query.success) return res.status(400).json({ errors: query.error.format() });
+
+    const result = await listGroupedByWaiter(query.data);
+    return res.json(result);
+  } catch (error) {
+    console.error('Error listando calificaciones por mesero:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };

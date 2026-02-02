@@ -51,3 +51,21 @@ export const clientIdParamSchema = z.object({
     })
     .pipe(z.number().int().positive())
 });
+
+export const ratingsByWaiterQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 1))
+    .pipe(z.number().int().min(1)),
+  page_size: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 10))
+    .pipe(z.number().int().min(1).max(100)),
+  recent_count: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 10))
+    .pipe(z.number().int().min(1).max(50)),
+});

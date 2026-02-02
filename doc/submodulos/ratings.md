@@ -209,6 +209,82 @@ Base de rutas: `/ratings`.
 }
 ```
 
+**Ejemplo de respuesta (granularity = global)**
+```json
+{
+  "success": true,
+  "page": 1,
+  "page_size": 10,
+  "total_waiters": 3,
+  "data": [
+    {
+      "waiter": {
+        "id": "2ac9116f-2764-4bb3-ac7d-7ac154fc09bb"
+      },
+      "stats": {
+        "count": 1,
+        "average": 3,
+        "lastRatingAt": "2026-02-02T18:10:01.733Z"
+      },
+      "recentRatings": [
+        {
+          "id": "e6aa2cd7-11b4-42a1-8d4e-ff72c3cc836f",
+          "clienteId": 147,
+          "score": 3,
+          "comment": "",
+          "createdAt": "2026-02-02T18:10:01.733Z"
+        }
+      ]
+    },
+    {
+      "waiter": {
+        "id": "665fcdd8-f54a-4b53-b758-67b4fad83e18"
+      },
+      "stats": {
+        "count": 2,
+        "average": 4.5,
+        "lastRatingAt": "2026-02-02T18:15:01.331Z"
+      },
+      "recentRatings": [
+        {
+          "id": "6fb99e29-9457-4ce8-a68e-edb22734c647",
+          "clienteId": 148,
+          "score": 5,
+          "comment": "",
+          "createdAt": "2026-02-02T18:15:01.331Z"
+        },
+        {
+          "id": "57b6d77c-0984-409a-8e7a-99b427814542",
+          "clienteId": 145,
+          "score": 4,
+          "comment": "Muy buen servicio",
+          "createdAt": "2026-02-02T15:27:26.472Z"
+        }
+      ]
+    },
+    {
+      "waiter": {
+        "id": "c541f56b-9ba5-4e3d-8e1a-ec64568c8e9a"
+      },
+      "stats": {
+        "count": 1,
+        "average": 5,
+        "lastRatingAt": "2026-02-02T18:15:01.383Z"
+      },
+      "recentRatings": [
+        {
+          "id": "8055a39d-89e4-47b5-abd6-68a541ca7e25",
+          "clienteId": 148,
+          "score": 5,
+          "comment": "",
+          "createdAt": "2026-02-02T18:15:01.383Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### 6) Listado paginado de calificaciones (incluye datos esenciales del cliente)
 - **Método/URL**: `GET /ratings/paged`
 - **Query**:

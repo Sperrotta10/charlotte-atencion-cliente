@@ -12,27 +12,27 @@ const router = Router();
 // Prefijo: /api/v1/atencion-cliente
 
 // ENDPOINTS DE PRUEBA DEL MIDDLEWARE (puedes eliminarlos después)
-// GET /test-guest - Prueba verifyGuest
-router.get('/test-guest', verifyGuest, (req, res) => {
+// GET /test-guest - Prueba verifyGuest (AUTH REMOVED - PUBLIC ACCESS)
+router.get('/test-guest', (req, res) => {
   res.json({
-    message: '✅ verifyGuest funcionó correctamente',
-    user: req.user
+    message: '✅ verifyGuest funcionó correctamente (now public)',
+    user: req.user || null
   });
 });
 
-// GET /test-staff - Prueba verifyStaff básico
-router.get('/test-staff', verifyStaff(), (req, res) => {
+// GET /test-staff - Prueba verifyStaff básico (AUTH REMOVED - PUBLIC ACCESS)
+router.get('/test-staff', (req, res) => {
   res.json({
-    message: '✅ verifyStaff funcionó correctamente',
-    user: req.user
+    message: '✅ verifyStaff funcionó correctamente (now public)',
+    user: req.user || null
   });
 });
 
-// GET /test-staff-permission - Prueba verifyStaff con permisos específicos
-router.get('/test-staff-permission', verifyStaff({ resource: 'Table_atc', method: 'Read' }), (req, res) => {
+// GET /test-staff-permission - Prueba verifyStaff con permisos específicos (AUTH REMOVED - PUBLIC ACCESS)
+router.get('/test-staff-permission', (req, res) => {
   res.json({
-    message: '✅ verifyStaff con permisos funcionó correctamente',
-    user: req.user
+    message: '✅ verifyStaff con permisos funcionó correctamente (now public)',
+    user: req.user || null
   });
 });
 

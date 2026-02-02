@@ -119,3 +119,11 @@ Cada vez que quieras trabajar en el proyecto:
 1.  Abre VS Code.
 2.  Abre la terminal.
 3.  Ejecuta: `npm run dev`
+
+---
+
+## Documentación adicional
+
+- Documentación de API (Postman/OpenAPI): ver [doc/posmant](doc/posmant)
+- Submódulos:
+    - Calificaciones (Ratings): ver [doc/submodulos/ratings.md](doc/submodulos/ratings.md)

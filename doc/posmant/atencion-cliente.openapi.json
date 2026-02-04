@@ -20,6 +20,9 @@
     },
     {
       "name": "service_request"
+    },
+    {
+      "name": "ratings"
     }
   ],
   "paths": {
@@ -43,12 +46,12 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "example": "santiago.p@charlotte.com"
+                    "example": "admin@charlotte.com"
                   },
                   "password": {
                     "type": "string",
                     "format": "password",
-                    "example": "SuperSeguraPassword"
+                    "example": "admin"
                   }
                 }
               }
@@ -233,28 +236,28 @@
                     },
                     "data": {
                       "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer"
-                          },
-                          "table_number": {
-                            "type": "integer"
-                          },
-                          "qr_uuid": {
-                            "type": "string"
-                          },
-                          "capacity": {
-                            "type": "integer"
-                          },
-                          "current_status": {
-                            "type": "string"
-                          },
-                          "active_sessions": {
-                            "type": "integer"
-                          }
-                        },
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "table_number": {
+                                "type": "integer"
+                              },
+                              "qr_uuid": {
+                                "type": "string"
+                              },
+                              "capacity": {
+                                "type": "integer"
+                              },
+                              "current_status": {
+                                "type": "string"
+                              },
+                              "active_sessions": {
+                                "type": "integer"
+                              }
+                            },
                         "required": [
                           "id",
                           "table_number",
@@ -625,6 +628,215 @@
             "bearer": []
           }
         ]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings/clients/{id}": {
+      "post": {
+        "tags": ["ratings"],
+        "summary": "Crear calificación para una sesión de cliente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID de ClienteTemporal"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "score": { "type": "integer", "minimum": 0, "maximum": 5 },
+                  "comment": { "type": "string", "maxLength": 300 },
+                  "waiter_id": { "type": "string", "format": "uuid" },
+                  "for_all": { "type": "boolean" }
+                },
+                "required": ["score"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "oneOf": [
+                        { "$ref": "#/components/schemas/Rating" },
+                        {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Rating" }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validación fallida o WAITER_NOT_ASSIGNED" },
+          "404": { "description": "CLIENT_NOT_FOUND" }
+        },
+        "security": [{ "bearer": [] }]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings": {
+      "get": {
+        "tags": ["ratings"],
+        "summary": "Listado simple de calificaciones",
+        "parameters": [
+          { "name": "waiter_id", "in": "query", "schema": { "type": "string", "format": "uuid" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Rating" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings/summary": {
+      "get": {
+        "tags": ["ratings"],
+        "summary": "Resumen/métricas",
+        "parameters": [
+          { "name": "waiter_id", "in": "query", "schema": { "type": "string", "format": "uuid" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "$ref": "#/components/schemas/RatingsSummary" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings/clients/{id}/waiters": {
+      "get": {
+        "tags": ["ratings"],
+        "summary": "Meseros que atendieron una sesión",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IdListResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings/by-waiter": {
+      "get": {
+        "tags": ["ratings"],
+        "summary": "Calificaciones agrupadas por mesero (paginadas)",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "page_size", "in": "query", "schema": { "type": "integer", "default": 10, "maximum": 100 } },
+          { "name": "recent_count", "in": "query", "schema": { "type": "integer", "default": 10, "maximum": 50 } },
+          { "name": "granularity", "in": "query", "schema": { "type": "string", "enum": ["global", "daily", "weekly"], "default": "global" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ListByWaiterResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings/paged": {
+      "get": {
+        "tags": ["ratings"],
+        "summary": "Listado paginado de calificaciones (incluye datos esenciales del cliente)",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "page_size", "in": "query", "schema": { "type": "integer", "default": 10, "maximum": 100 } },
+          { "name": "waiter_id", "in": "query", "schema": { "type": "string", "format": "uuid" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "order_by", "in": "query", "schema": { "type": "string", "enum": ["createdAt", "score"], "default": "createdAt" } },
+          { "name": "direction", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RatingsPagedResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }]
+      }
+    },
+    "/api/v1/atencion-cliente/ratings/timeseries": {
+      "get": {
+        "tags": ["ratings"],
+        "summary": "Serie temporal (diaria/semanal)",
+        "parameters": [
+          { "name": "granularity", "in": "query", "schema": { "type": "string", "enum": ["daily", "weekly"], "default": "daily" }, "required": true },
+          { "name": "waiter_id", "in": "query", "schema": { "type": "string", "format": "uuid" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TimeseriesResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }]
       }
     },
     "/api/v1/atencion-cliente/tables/{id}": {
@@ -3902,7 +4114,148 @@
     }
   },
   "components": {
-    "schemas": {},
+    "schemas": {
+      "Rating": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "clienteId": { "type": "integer" },
+          "waiterId": { "type": "string" },
+          "score": { "type": "integer" },
+          "comment": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RatingsSummary": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer" },
+          "average": { "type": "number" },
+          "distribution": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          }
+        }
+      },
+      "ClientEssential": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "customerName": { "type": "string" },
+          "customerDni": { "type": "string" }
+        }
+      },
+      "RatingPagedItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "waiterId": { "type": "string" },
+          "score": { "type": "integer" },
+          "comment": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "cliente": { "$ref": "#/components/schemas/ClientEssential" }
+        }
+      },
+      "RatingsPagedResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "page": { "type": "integer" },
+          "page_size": { "type": "integer" },
+          "total": { "type": "integer" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RatingPagedItem" }
+          }
+        }
+      },
+      "Waiter": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "type": "string" }
+        }
+      },
+      "WaiterStats": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer" },
+          "average": { "type": "number" },
+          "lastRatingAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RecentRating": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "clienteId": { "type": "integer" },
+          "score": { "type": "integer" },
+          "comment": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "BucketItem": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string" },
+          "count": { "type": "integer" },
+          "average": { "type": "number" }
+        }
+      },
+      "WaiterGroupItem": {
+        "type": "object",
+        "properties": {
+          "waiter": { "$ref": "#/components/schemas/Waiter" },
+          "stats": { "$ref": "#/components/schemas/WaiterStats" },
+          "buckets": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BucketItem" }
+          },
+          "recentRatings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RecentRating" }
+          }
+        }
+      },
+      "ListByWaiterResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "page": { "type": "integer" },
+          "page_size": { "type": "integer" },
+          "total_waiters": { "type": "integer" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WaiterGroupItem" }
+          }
+        }
+      },
+      "TimeseriesItem": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string" },
+          "count": { "type": "integer" },
+          "average": { "type": "number" }
+        }
+      },
+      "TimeseriesResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "granularity": { "type": "string", "enum": ["daily", "weekly"] },
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/TimeseriesItem" } }
+        }
+      },
+      "IdListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
     "responses": {},
     "securitySchemes": {
       "bearer": {

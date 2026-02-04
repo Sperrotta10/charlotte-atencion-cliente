@@ -19,6 +19,6 @@ router.get('/', getAllOrders);
 router.get('/:id', getOrderById);
 
 // PATCH /:id (Actualizar estado) (Guest: Solo CANCELLED (si pending). Staff: COOKING, DELIVERED.)
-router.patch('/:id', verifyGuestOrStaff(), ensureOwnership('comanda'), updateOrderStatus);
+router.patch('/:id', updateOrderStatus);
 
 export default router;

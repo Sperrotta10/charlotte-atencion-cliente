@@ -167,6 +167,7 @@ export const getAllServiceRequests = async ({ page, limit, status, type, table_i
     message: req.message,
     status: req.status,
     clientId: req.clienteId,
+    waiter_id: req.attendedByWaiterId,
     
     // Timestamps sin procesar para métricas en frontend
     created_at: req.createdAt,

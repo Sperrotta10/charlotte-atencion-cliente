@@ -2,16 +2,34 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Se ejecuta todos los días a las 00:00 UTC
-    - cron: '0 0 * * *'
-  workflow_dispatch: # Permite ejecutarlo manualmente si quieres probar
+    # Se ejecuta todos los lunes y jueves a las 00:00 UTC 
+    # (Supabase suele pausar tras 7 días de inactividad)
+    - cron: '0 0 * * 1,4' 
+  workflow_dispatch: # Permite ejecutarlo manualmente
 
 jobs:
-  ping:
+  ping-supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase
+      - name: Wake up / Keep alive Supabase Project
         run: |
-          curl -v -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-          -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
+          # Capturamos la respuesta y el código de estado en una sola ejecución
+          RESPONSE=$(curl -s -X POST \
+            "https://api.supabase.com/v1/projects/${{ secrets.SUPABASE_PROJECT_REF }}/restore" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}")
+          
+          # Obtenemos el código HTTP de la misma petición (usando una técnica para no repetir el curl)
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "https://api.supabase.com/v1/projects/${{ secrets.SUPABASE_PROJECT_REF }}/restore" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}")
+          
+          echo "Código de respuesta: $STATUS_CODE"
+
+          if [ "$STATUS_CODE" -eq 201 ] || [ "$STATUS_CODE" -eq 200 ]; then
+            echo "✅ ¡Proyecto restaurado con éxito!"
+          elif [ "$STATUS_CODE" -eq 409 ] || [[ "$RESPONSE" == *"ACTIVE_HEALTHY"* ]]; then
+            echo "ℹ️ El proyecto ya está activo y saludable. No se requiere acción."
+          else
+            echo "❌ Error inesperado: $RESPONSE"
+            exit 1
+          fi
